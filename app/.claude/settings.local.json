@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run:*)",
+      "mcp__pencil__get_screenshot",
+      "mcp__pencil__get_editor_state",
+      "mcp__obsidian__read_multiple_notes",
+      "mcp__claude_ai_Context7__query-docs",
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "Bash(curl -s \"https://nominatim.openstreetmap.org/search?q=Ameghino+655+Dolores+Buenos+Aires+Argentina&format=json&limit=3\" -H \"User-Agent: two-brothers-app\")",
+      "Bash(curl -s \"https://nominatim.openstreetmap.org/search?q=Washington+133+Dolores+Buenos+Aires+Argentina&format=json&limit=3\" -H \"User-Agent: two-brothers-app\")",
+      "mcp__obsidian__list_directory",
+      "mcp__obsidian__write_note",
+      "mcp__obsidian__read_note",
+      "Read(//Users/facundoosti/Documents/cerebro-digital/Proyectos/TwoBrothers/slides/**)",
+      "Bash(mv \"KQzWZ.png\" \"Slide 01 Cover.png\")",
+      "Bash(mv \"URrOJ.png\" \"Slide 02 El Problema.png\")",
+      "Bash(mv \"vlvSa.png\" \"Slide 03 La Solución.png\")",
+      "Bash(mv \"AnRRg.png\" \"Slide 04 Los 3 Roles.png\")",
+      "mcp__obsidian__search_notes"
+    ]
+  }
+}

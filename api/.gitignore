@@ -1,0 +1,18 @@
+# Rails secrets — NEVER commit these
+/config/master.key
+/config/credentials/*.key
+
+# Logs & temp
+/log/*
+!/log/.keep
+/tmp/
+
+# Uploaded files
+/storage/*
+!/storage/.keep
+
+# SimpleCov coverage report
+/coverage/
+
+# RSpec example status persistence
+/spec/examples.txt
