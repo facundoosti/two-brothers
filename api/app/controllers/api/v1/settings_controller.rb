@@ -19,6 +19,7 @@ module Api
         authorize :setting, :update?
         params.require(:settings).each do |key, value|
           next unless ALLOWED_KEYS.include?(key)
+          next if value.blank?
           Setting[key] = value
         end
         head :no_content

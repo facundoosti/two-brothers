@@ -10,6 +10,7 @@ Rails.application.routes.draw do
   if Rails.env.development?
     namespace :dev do
       patch "switch_role", to: "role_switcher#switch_role"
+      post  "switch_user", to: "role_switcher#switch_user"
     end
   end
 

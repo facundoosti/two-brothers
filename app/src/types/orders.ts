@@ -51,6 +51,7 @@ export interface Order {
   cancellation_reason: string | null
   cancelled_at: string | null
   created_at: string
+  paid: boolean
   delivery_assignment_id: number | null
   user: { name: string; email: string }
   order_items: OrderItem[]

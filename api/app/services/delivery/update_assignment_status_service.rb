@@ -12,7 +12,8 @@ module Delivery
         ActiveRecord::Base.transaction do
           @assignment.depart!
           @assignment.update_columns(departed_at: Time.current)
-          @assignment.order.start_delivering!
+          order = @assignment.order
+          order.start_delivering! if order.may_start_delivering?
         end
       when "delivered"
         return failure(I18n.t("errors.transition_not_allowed")) unless @assignment.may_deliver?

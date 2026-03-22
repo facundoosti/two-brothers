@@ -13,7 +13,8 @@ module Orders
       return failure(I18n.t("errors.insufficient_stock_confirm")) unless stock.available?(quantity)
 
       ActiveRecord::Base.transaction do
-        @order.confirm_payment!
+        @order.pickup? ? @order.complete_pickup! : @order.confirm_payment!
+        @order.update_columns(paid: true)
         stock.update!(used: stock.used + quantity)
       end
 

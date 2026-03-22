@@ -128,7 +128,7 @@ export default function OrdersPage() {
                 </thead>
                 <tbody>
                   {filtered.map((order) => {
-                    const isPaid = order.status !== 'pending_payment'
+                    const isPaid = order.paid
                     return (
                       <tr key={order.id} className="table-row">
                         <td className="table-td font-mono text-xs font-semibold text-(--color-text-primary)">

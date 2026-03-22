@@ -13,5 +13,11 @@ module Dev
       current_user.update!(role: role)
       render json: UserBlueprint.render_as_hash(current_user)
     end
+
+    # POST /dev/switch_user
+    def switch_user
+      user = User.find_by!(uid: params[:uid])
+      render json: UserBlueprint.render_as_hash(user).merge(token: user.api_token)
+    end
   end
 end

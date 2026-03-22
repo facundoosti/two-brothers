@@ -1,25 +1,19 @@
 import { useState, useRef, useEffect } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { api } from '@/lib/api'
-import type { User, UserRole } from '@/types/users'
+import type { User } from '@/types/users'
 
-const ROLES: { value: UserRole; label: string; color: string }[] = [
-  { value: 'customer', label: 'Cliente', color: 'bg-blue-500' },
-  { value: 'delivery', label: 'Repartidor', color: 'bg-yellow-500' },
-  { value: 'admin', label: 'Admin', color: 'bg-purple-500' },
+const DEV_USERS: { uid: string; email: string; label: string; color: string; home: string }[] = [
+  { uid: 'seed_admin_001',    email: 'facundo@twobrothers.com',    label: 'Facundo', color: 'bg-purple-500', home: '/admin' },
+  { uid: 'seed_customer_002', email: 'lucas.fernandez@gmail.com',  label: 'Lucas',   color: 'bg-blue-500',   home: '/' },
+  { uid: 'seed_delivery_001', email: 'carlos.mendoza@gmail.com',   label: 'Carlos',  color: 'bg-yellow-500', home: '/delivery' },
 ]
-
-const HOME_BY_ROLE: Record<UserRole, string> = {
-  customer: '/',
-  delivery: '/delivery',
-  admin: '/admin',
-}
 
 export default function DevRoleSwitcher() {
   const user = useAuthStore((state) => state.user)
   const token = useAuthStore((state) => state.token)
   const setAuth = useAuthStore((state) => state.setAuth)
-  const [loading, setLoading] = useState<UserRole | null>(null)
+  const [loading, setLoading] = useState<string | null>(null)
 
   const ref = useRef<HTMLDivElement>(null)
   const dragging = useRef(false)
@@ -55,13 +49,16 @@ export default function DevRoleSwitcher() {
 
   if (!user || !token) return null
 
-  async function switchRole(role: UserRole) {
-    if (role === user!.role || loading) return
-    setLoading(role)
+  async function switchToUser(uid: string, home: string) {
+    if (loading) return
+    setLoading(uid)
     try {
-      const updated = await api.patch<User>('/dev/switch_role', { role })
-      setAuth(updated, token!)
-      window.location.href = HOME_BY_ROLE[role]
+      const { token: newToken, ...newUser } = await api.post<User & { token: string }>(
+        '/dev/switch_user',
+        { uid },
+      )
+      setAuth(newUser, newToken)
+      window.location.href = home
     } finally {
       setLoading(null)
     }
@@ -87,19 +84,19 @@ export default function DevRoleSwitcher() {
           <circle cx="8" cy="8" r="1" fill="currentColor" />
         </svg>
         <p className="text-[10px] font-mono text-(--color-text-muted) uppercase tracking-widest">
-          Dev · <span className="text-(--color-primary)">{user.role}</span>
+          Dev · <span className="text-(--color-primary)">{user.name.split(' ')[0]}</span>
         </p>
       </div>
 
       {/* Buttons */}
       <div className="flex gap-1.5 px-3 pb-3">
-        {ROLES.map(({ value, label, color }) => {
-          const isActive = user.role === value
-          const isLoading = loading === value
+        {DEV_USERS.map(({ uid, email, label, color, home }) => {
+          const isActive = user.email === email
+          const isLoading = loading === uid
           return (
             <button
-              key={value}
-              onClick={() => switchRole(value)}
+              key={uid}
+              onClick={() => switchToUser(uid, home)}
               disabled={isActive || !!loading}
               className={[
                 'text-xs font-medium px-2.5 py-1 rounded-full transition-all',

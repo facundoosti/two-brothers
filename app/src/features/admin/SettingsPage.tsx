@@ -41,8 +41,8 @@ export default function SettingsPage() {
       open_days:            settings.open_days            ?? '4,5,6,0',
       opening_time:         settings.opening_time         ?? '20:00',
       closing_time:         settings.closing_time         ?? '00:00',
-      delivery_fee:         settings.delivery_fee         ?? '0',
-      delivery_fee_enabled: settings.delivery_fee_enabled ?? 'false',
+      delivery_fee:         settings.delivery_fee         || '0',
+      delivery_fee_enabled: settings.delivery_fee_enabled || 'false',
     })
   }, [settings])
 

@@ -13,16 +13,23 @@ const LOCAL_COORDS: [number, number] = [-57.6833, -36.3192]
 const PAYMENT_METHOD_LABEL = { cash: 'Efectivo', transfer: 'Transferencia' }
 const MODALITY_LABEL = { delivery: 'Delivery', pickup: 'Retiro en local' }
 
-const NEXT_STATUS: Record<string, string> = {
+const NEXT_STATUS_DELIVERY: Record<string, string> = {
   confirmed: 'preparing',
   preparing: 'ready',
   ready: 'delivering',
 }
 
+const NEXT_STATUS_PICKUP: Record<string, string> = {
+  confirmed: 'preparing',
+  preparing: 'ready',
+  ready: 'delivered',
+}
+
 const NEXT_STATUS_LABEL: Record<string, string> = {
   confirmed: 'Marcar en preparación',
   preparing: 'Marcar como Lista',
-  ready: 'Marcar en camino',
+  ready_delivery: 'Marcar en camino',
+  ready_pickup: 'Marcar como entregada',
 }
 
 export default function OrderDetailPage() {
@@ -48,8 +55,12 @@ export default function OrderDetailPage() {
   }
 
   const canCancel = order.status === 'pending_payment' || order.status === 'confirmed'
-  const nextStatus = NEXT_STATUS[order.status]
-  const nextStatusLabel = NEXT_STATUS_LABEL[order.status]
+  const nextStatusMap = order.modality === 'pickup' ? NEXT_STATUS_PICKUP : NEXT_STATUS_DELIVERY
+  const nextStatus = nextStatusMap[order.status]
+  const nextStatusLabelKey = order.status === 'ready'
+    ? (order.modality === 'pickup' ? 'ready_pickup' : 'ready_delivery')
+    : order.status
+  const nextStatusLabel = NEXT_STATUS_LABEL[nextStatusLabelKey]
 
   function handleNextStatus() {
     if (!nextStatus) return

@@ -89,14 +89,15 @@ stock = DailyStock.find_or_create_by!(date: Date.today) { |s| s.total = 100; s.u
 # ── Usuarios ───────────────────────────────────────────────────────────────────
 
 puts "Creando usuarios..."
-admin = User.find_or_create_by!(email: "admin@twobrothers.com") do |u|
+admin = User.find_or_create_by!(email: "facundo@twobrothers.com") do |u|
   u.provider   = "google"
   u.uid        = "seed_admin_001"
-  u.name       = "Admin Two Brothers"
+  u.name       = "Facundo Osti"
   u.role       = :admin
   u.status     = :active
   u.api_token  = SecureRandom.hex(32)
 end
+admin.update!(name: "Facundo Osti", uid: "seed_admin_001", role: :admin, status: :active)
 
 delivery1 = User.find_or_create_by!(email: "carlos.mendoza@gmail.com") do |u|
   u.provider  = "google"

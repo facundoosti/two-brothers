@@ -8,7 +8,8 @@ module Api
       STATUS_EVENTS = {
         "preparing"  => :start_preparing,
         "ready"      => :mark_ready,
-        "delivering" => :start_delivering
+        "delivering" => :start_delivering,
+        "delivered"  => :complete_ready_pickup
       }.freeze
 
       before_action :set_order, only: %i[show confirm_payment update_status cancel]

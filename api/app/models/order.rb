@@ -43,11 +43,19 @@ class Order < ApplicationRecord
     end
 
     event :start_delivering do
-      transitions from: :ready, to: :delivering
+      transitions from: :ready, to: :delivering, guard: :delivery?
     end
 
     event :mark_delivered do
       transitions from: :delivering, to: :delivered
+    end
+
+    event :complete_pickup do
+      transitions from: :pending_payment, to: :delivered, guard: :pickup?
+    end
+
+    event :complete_ready_pickup do
+      transitions from: :ready, to: :delivered, guard: :pickup?
     end
 
     event :cancel do

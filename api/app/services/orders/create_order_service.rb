@@ -15,6 +15,7 @@ module Orders
       return failure(I18n.t("errors.insufficient_stock", available: stock.available)) unless stock.available?(quantity)
 
       order = @user.orders.build(@params)
+      order.total = order.order_items.sum { |item| item.quantity * item.unit_price }
 
       if order.delivery? && Setting["delivery_fee_enabled"] == "true"
         order.delivery_fee = Setting["delivery_fee"].to_f

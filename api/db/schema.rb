@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_21_000002) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_22_163210) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -93,6 +93,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_21_000002) do
     t.float "latitude"
     t.float "longitude"
     t.decimal "delivery_fee", precision: 10, scale: 2, default: "0.0", null: false
+    t.boolean "paid", default: false, null: false
     t.index ["cancelled_by_id"], name: "index_orders_on_cancelled_by_id"
     t.index ["created_by_id"], name: "index_orders_on_created_by_id"
     t.index ["latitude", "longitude"], name: "index_orders_on_latitude_and_longitude"

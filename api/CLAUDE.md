@@ -10,12 +10,12 @@
 | Cache | Solid Cache |
 | WebSockets | Solid Cable (ActionCable) |
 | Auth | Google OAuth 2.0 via `omniauth-google-oauth2` + token Bearer |
-| Puerto dev | 4000 |
+| Puerto dev | 3000 |
 
 ## Arrancar el servidor
 
 ```bash
-bin/rails server -p 4000
+bin/rails server -p 3000
 ```
 
 ## Comandos frecuentes
