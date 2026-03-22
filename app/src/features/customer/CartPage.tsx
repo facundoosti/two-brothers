@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router'
-import { Trash2, ChevronRight } from 'lucide-react'
+import { Trash2, ArrowRight, Banknote, Building2 } from 'lucide-react'
 import { useCartStore } from '@/store/cartStore'
 import { useAuthStore } from '@/store/authStore'
 import { cn } from '@/lib/utils'
@@ -69,14 +69,14 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 gap-4">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 gap-4 pb-32">
         <span className="text-5xl">🛒</span>
         <p className="text-(--color-text-secondary) text-sm text-center">
           Tu carrito está vacío
         </p>
         <button
           onClick={() => navigate('/')}
-          className="bg-(--color-primary) text-(--color-background) font-semibold px-6 py-2.5 rounded-(--radius-pill) text-sm"
+          className="bg-(--color-primary) text-[#00391d] font-bold px-8 py-3 rounded-(--radius-pill) text-sm"
         >
           Ver menú
         </button>
@@ -89,199 +89,223 @@ export default function CartPage() {
 
   return (
     <div className="pb-36 max-w-lg mx-auto">
-      {/* Items */}
-      <div className="px-4 pt-4 flex flex-col gap-2">
-        <h2 className="text-xs font-semibold text-(--color-text-muted) uppercase tracking-wider mb-1">
+      {/* Items list */}
+      <div className="px-5 pt-5 space-y-4">
+        <h2 className="text-[10px] font-bold text-(--color-text-secondary) uppercase tracking-widest">
           Tu pedido
         </h2>
         {items.map((item) => (
-          <div
-            key={item.id}
-            className="bg-(--color-surface) rounded-(--radius-lg) p-4 flex items-center gap-3"
-          >
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-(--color-text-primary)">{item.name}</p>
-              <p className="text-xs text-(--color-text-secondary) mt-0.5">
-                {formatPrice(item.price)} c/u
-              </p>
-            </div>
-
-            {/* Quantity controls */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setQuantity(item.id, item.quantity - 1)}
-                className="w-7 h-7 rounded-full bg-(--color-surface-elevated) flex items-center justify-center text-(--color-text-primary) font-bold text-base leading-none"
-              >
-                −
-              </button>
-              <span className="w-5 text-center text-sm font-bold text-(--color-text-primary)">
-                {item.quantity}
-              </span>
-              <button
-                onClick={() => setQuantity(item.id, item.quantity + 1)}
-                className="w-7 h-7 rounded-full bg-(--color-surface-elevated) flex items-center justify-center text-(--color-text-primary) font-bold text-base leading-none"
-              >
-                +
-              </button>
-            </div>
-
-            {/* Subtotal + remove */}
-            <div className="flex flex-col items-end gap-1 shrink-0">
-              <span className="text-sm font-semibold text-(--color-text-primary)">
-                {formatPrice(item.price * item.quantity)}
-              </span>
-              <button
-                onClick={() => removeItem(item.id)}
-                className="text-(--color-destructive) opacity-70 hover:opacity-100"
-              >
-                <Trash2 size={13} />
-              </button>
+          <div key={item.id} className="flex gap-4 items-start">
+            <div className="flex-1 flex flex-col gap-1 min-w-0">
+              <div className="flex justify-between items-start gap-2">
+                <h3 className="font-semibold text-base text-(--color-text-primary) leading-tight">
+                  {item.name}
+                </h3>
+                <button
+                  onClick={() => removeItem(item.id)}
+                  className="text-(--color-text-secondary)/40 hover:text-(--color-destructive) transition-colors shrink-0"
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
+              <div className="flex items-center justify-between mt-1">
+                <span className="font-mono text-(--color-primary) font-bold text-sm">
+                  {formatPrice(item.price * item.quantity)}
+                </span>
+                {/* Quantity controls */}
+                <div className="flex items-center bg-(--color-surface) rounded-full px-1 py-1">
+                  <button
+                    onClick={() => setQuantity(item.id, item.quantity - 1)}
+                    className="w-7 h-7 flex items-center justify-center text-(--color-text-secondary) hover:text-(--color-text-primary) transition-colors"
+                  >
+                    <span className="text-lg leading-none font-medium">−</span>
+                  </button>
+                  <span className="px-3 font-mono text-xs font-bold text-(--color-text-primary)">
+                    {item.quantity}
+                  </span>
+                  <button
+                    onClick={() => setQuantity(item.id, item.quantity + 1)}
+                    className="w-7 h-7 flex items-center justify-center text-(--color-primary) hover:text-(--color-primary)/80 transition-colors"
+                  >
+                    <span className="text-lg leading-none font-medium">+</span>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Modality */}
-      <div className="px-4 mt-5">
-        <h2 className="text-xs font-semibold text-(--color-text-muted) uppercase tracking-wider mb-2">
-          ¿Cómo querés recibirlo?
-        </h2>
-        <div className="grid grid-cols-2 gap-2">
-          {(
-            [
-              { key: 'delivery', label: '🛵 Delivery' },
-              { key: 'pickup', label: '🏪 Retiro en local' },
-            ] as const
-          ).map(({ key, label }) => (
+      {/* Modality section */}
+      <div className="px-5 mt-7">
+        <div className="bg-(--color-surface) rounded-(--radius-lg) p-5">
+          <label className="block text-[10px] uppercase tracking-widest text-(--color-text-secondary) font-bold mb-4">
+            ¿Cómo querés recibirlo?
+          </label>
+          {/* Pill toggle */}
+          <div className="bg-(--color-surface-low) p-1.5 rounded-full flex mb-5">
             <button
-              key={key}
-              onClick={() => setModality(key)}
+              onClick={() => setModality('delivery')}
               className={cn(
-                'py-3 rounded-(--radius-lg) text-sm font-semibold border transition-colors',
-                modality === key
-                  ? 'bg-(--color-primary-muted) border-(--color-primary) text-(--color-primary)'
-                  : 'bg-(--color-surface) border-(--color-border) text-(--color-text-secondary)',
+                'flex-1 py-2.5 rounded-full font-bold text-sm transition-all duration-200',
+                modality === 'delivery'
+                  ? 'bg-(--color-primary) text-[#00391d] shadow-sm'
+                  : 'text-(--color-text-secondary)',
               )}
             >
-              {label}
+              🛵 Delivery
             </button>
-          ))}
+            <button
+              onClick={() => setModality('pickup')}
+              className={cn(
+                'flex-1 py-2.5 rounded-full font-bold text-sm transition-all duration-200',
+                modality === 'pickup'
+                  ? 'bg-(--color-primary) text-[#00391d] shadow-sm'
+                  : 'text-(--color-text-secondary)',
+              )}
+            >
+              🏪 Retiro
+            </button>
+          </div>
+
+          {/* Address input for delivery */}
+          {modality === 'delivery' && (
+            <div className="space-y-3">
+              <AddressSearchInput value={address} onChange={setAddress} />
+              {user?.default_address && address !== user.default_address && (
+                <button
+                  onClick={() => setAddress(user.default_address!)}
+                  className="flex items-center gap-2 px-4 py-2 bg-(--color-primary)/5 rounded-full"
+                >
+                  <span className="text-[11px] font-bold text-(--color-primary) uppercase tracking-tight">
+                    Usar: {user.default_address}
+                  </span>
+                  <ArrowRight size={12} className="text-(--color-primary)" />
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Address */}
-      {modality === 'delivery' && (
-        <div className="px-4 mt-4">
-          <h2 className="text-xs font-semibold text-(--color-text-muted) uppercase tracking-wider mb-2">
-            Dirección de entrega
-          </h2>
-          <AddressSearchInput value={address} onChange={setAddress} />
-        </div>
-      )}
-
       {/* Payment method */}
-      <div className="px-4 mt-5">
-        <h2 className="text-xs font-semibold text-(--color-text-muted) uppercase tracking-wider mb-2">
-          Medio de pago
-        </h2>
-        <div className="bg-(--color-surface) rounded-(--radius-lg) overflow-hidden">
-          {(
-            [
-              {
-                key: 'cash',
-                label: 'Efectivo',
-                emoji: '💵',
-                sub: 'Pagás al momento de recibir o retirar',
-              },
-              {
-                key: 'transfer',
-                label: 'Transferencia',
-                emoji: '📲',
-                sub: 'Alias MP: twobrothers.mp',
-              },
-            ] as const
-          ).map(({ key, label, emoji, sub }) => (
-            <button
-              key={key}
-              onClick={() => setPaymentMethod(key)}
-              className={cn(
-                'w-full flex items-center gap-3 px-4 py-3.5 text-left border-b border-(--color-border) last:border-0 transition-colors',
-                paymentMethod === key ? 'bg-(--color-primary-muted)' : '',
-              )}
-            >
-              <span className="text-xl">{emoji}</span>
-              <div className="flex-1">
-                <p
+      <div className="px-5 mt-5">
+        <div className="bg-(--color-surface) rounded-(--radius-lg) p-5">
+          <label className="block text-[10px] uppercase tracking-widest text-(--color-text-secondary) font-bold mb-4">
+            Medio de pago
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            {(
+              [
+                {
+                  key: 'cash',
+                  label: 'Efectivo',
+                  sub: 'Al recibir',
+                  icon: Banknote,
+                },
+                {
+                  key: 'transfer',
+                  label: 'Transf. MP',
+                  sub: 'twobrothers.mp',
+                  icon: Building2,
+                },
+              ] as const
+            ).map(({ key, label, sub, icon: Icon }) => (
+              <button
+                key={key}
+                onClick={() => setPaymentMethod(key)}
+                className={cn(
+                  'flex flex-col items-center justify-center p-4 rounded-(--radius-lg) border transition-all active:scale-[0.98]',
+                  paymentMethod === key
+                    ? 'bg-(--color-surface-elevated) border-(--color-primary)/40 shadow-[0_0_12px_rgba(97,230,152,0.08)]'
+                    : 'bg-(--color-surface-low) border-transparent',
+                )}
+              >
+                <Icon
+                  size={22}
                   className={cn(
-                    'text-sm font-medium',
+                    'mb-2 transition-colors',
                     paymentMethod === key
                       ? 'text-(--color-primary)'
-                      : 'text-(--color-text-primary)',
+                      : 'text-(--color-text-secondary)',
+                  )}
+                />
+                <span
+                  className={cn(
+                    'text-xs font-semibold transition-colors',
+                    paymentMethod === key
+                      ? 'text-(--color-text-primary)'
+                      : 'text-(--color-text-secondary)',
                   )}
                 >
                   {label}
-                </p>
-                <p className="text-xs text-(--color-text-secondary) mt-0.5">{sub}</p>
-              </div>
-              <div
-                className={cn(
-                  'w-4 h-4 rounded-full border-2 shrink-0 transition-colors',
-                  paymentMethod === key
-                    ? 'border-(--color-primary) bg-(--color-primary)'
-                    : 'border-(--color-border)',
-                )}
-              />
-            </button>
-          ))}
+                </span>
+                <span className="text-[10px] text-(--color-text-secondary) mt-0.5 font-mono truncate w-full text-center">
+                  {sub}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Fixed bottom: total + CTA */}
-      <div className="fixed bottom-0 left-0 right-0 px-4 pb-4 pt-3 bg-(--color-background) border-t border-(--color-border)">
-        <div className="max-w-lg mx-auto flex flex-col gap-1 mb-3">
-          {deliveryFee > 0 && (
-            <div className="flex justify-between items-center">
-              <span className="text-(--color-text-secondary) text-sm">Subtotal</span>
-              <span className="text-(--color-text-secondary) text-sm">{formatPrice(subtotal)}</span>
+      {/* Order summary receipt */}
+      <div className="px-5 mt-5">
+        <div className="bg-(--color-surface-lowest) rounded-(--radius-lg) p-6 border-l-4 border-(--color-primary)">
+          <h3 className="font-mono text-[10px] uppercase tracking-[0.2em] text-(--color-text-secondary) mb-4">
+            Resumen del pedido
+          </h3>
+          <div className="space-y-2 font-mono text-sm">
+            {items.map((item) => (
+              <div key={item.id} className="flex justify-between">
+                <span className="text-(--color-text-secondary)">
+                  {item.quantity}× {item.name}
+                </span>
+                <span className="text-(--color-text-primary)">
+                  {formatPrice(item.price * item.quantity)}
+                </span>
+              </div>
+            ))}
+            {deliveryFee > 0 && (
+              <div className="flex justify-between text-(--color-text-secondary)">
+                <span>Envío</span>
+                <span>{formatPrice(deliveryFee)}</span>
+              </div>
+            )}
+            <div className="pt-3 mt-2 border-t border-(--color-border)/30 flex justify-between items-baseline">
+              <span className="text-sm font-bold text-(--color-text-primary) tracking-widest uppercase">
+                Total
+              </span>
+              <span className="text-2xl font-bold text-(--color-primary)">
+                {formatPrice(total)}
+              </span>
             </div>
-          )}
-          {deliveryFee > 0 && (
-            <div className="flex justify-between items-center">
-              <span className="text-(--color-text-secondary) text-sm">Envío</span>
-              <span className="text-(--color-text-secondary) text-sm">{formatPrice(deliveryFee)}</span>
-            </div>
-          )}
-          <div className="flex justify-between items-center">
-            <span className="text-(--color-text-secondary) text-sm">Total</span>
-            <span className="text-(--color-text-primary) font-bold text-lg">{formatPrice(total)}</span>
           </div>
         </div>
-        <div className="max-w-lg mx-auto">
-          <button
-            onClick={handleConfirm}
-            disabled={!canConfirm}
-            className="w-full bg-(--color-primary) text-(--color-background) font-semibold py-3.5 rounded-(--radius-pill) disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            {createOrder.isPending ? (
-              <span className="animate-spin rounded-full border-2 border-(--color-background) border-t-transparent w-4 h-4" />
-            ) : (
-              <>
-                Confirmar pedido
-                <ChevronRight size={16} />
-              </>
-            )}
-          </button>
-          {modality === 'delivery' && !address.trim() && (
-            <p className="text-xs text-(--color-text-muted) text-center mt-2">
-              Ingresá tu dirección para continuar
-            </p>
+      </div>
+
+      {/* CTA */}
+      <div className="px-5 mt-6">
+        <button onClick={handleConfirm} disabled={!canConfirm} className="btn-cta">
+          {createOrder.isPending ? (
+            <span className="animate-spin rounded-full border-2 border-[#00391d]/30 border-t-[#00391d] w-5 h-5" />
+          ) : (
+            <>
+              Hacer el pedido
+              <ArrowRight size={18} />
+            </>
           )}
-          {createOrder.isError && (
-            <p className="text-xs text-red-400 text-center mt-2">
-              {createOrder.error.message}
-            </p>
-          )}
-        </div>
+        </button>
+        {modality === 'delivery' && !address.trim() && (
+          <p className="text-xs text-(--color-text-secondary) text-center mt-3">
+            Ingresá tu dirección para continuar
+          </p>
+        )}
+        {createOrder.isError && (
+          <p className="text-xs text-(--color-destructive) text-center mt-3">
+            {createOrder.error.message}
+          </p>
+        )}
       </div>
     </div>
   )

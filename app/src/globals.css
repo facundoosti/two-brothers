@@ -2,27 +2,31 @@
 
 @theme {
   /* ── Colors ── */
-  --color-background: #0d0f14;
-  --color-surface: #151820;
-  --color-surface-elevated: #1e2130;
-  --color-sidebar: #101319;
+  --color-background: #111318;
+  --color-surface: #1e1f25;
+  --color-surface-elevated: #282a2f;
+  --color-surface-low: #1a1b21;
+  --color-surface-lowest: #0c0e13;
+  --color-sidebar: #111318;
   --color-sidebar-border: #1e2535;
-  --color-border: #252a35;
+  --color-border: #3d4a40;
 
-  --color-primary: #40c97f;
+  --color-primary: #61e698;
+  --color-primary-dim: #40c97f;
   --color-primary-muted: #1a3d2b;
-  --color-accent: #f4a261;
+  --color-accent: #ffb780;
+  --color-accent-container: #763c00;
   --color-destructive: #e05252;
 
-  --color-text-primary: #e8eaf0;
-  --color-text-secondary: #7a8099;
+  --color-text-primary: #e2e2e9;
+  --color-text-secondary: #bccabd;
   --color-text-muted: #404560;
 
-  --color-status-pending: #f4a261;
+  --color-status-pending: #ffb780;
   --color-status-confirmed: #6c8cf0;
   --color-status-preparing: #c084fc;
   --color-status-ready: #38bdf8;
-  --color-status-delivering: #40c97f;
+  --color-status-delivering: #61e698;
   --color-status-completed: #34d399;
   --color-status-cancelled: #e05252;
 
@@ -70,6 +74,12 @@
   .btn-icon {
     @apply p-1.5 rounded-lg text-(--color-text-muted) hover:text-(--color-text-primary) hover:bg-(--color-surface-elevated) transition-colors;
   }
+  .btn-cta {
+    @apply w-full flex items-center justify-center gap-2 py-4 rounded-full font-bold text-base
+      bg-[linear-gradient(135deg,#61e698,#40c97f)] text-[#00391d]
+      shadow-[0_8px_24px_rgba(64,201,127,0.2)] active:scale-95 transition-all duration-200
+      disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100;
+  }
 
   /* ── Form inputs ──────────────────────────────────────────────────────────── */
   .form-input {
@@ -94,10 +104,53 @@
   .spinner {
     @apply w-6 h-6 rounded-full border-2 border-(--color-text-muted) border-t-(--color-primary) animate-spin;
   }
+
+  /* ── Customer visual helpers ─────────────────────────────────────────────── */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .culinary-noir-gradient {
+    background: linear-gradient(
+      180deg,
+      rgba(17, 19, 24, 0) 0%,
+      rgba(17, 19, 24, 0.75) 65%,
+      rgba(17, 19, 24, 1) 100%
+    );
+  }
+
+  .amber-glow {
+    filter: blur(80px);
+    background: #f4a261;
+    opacity: 0.15;
+  }
+}
+
+@layer utilities {
+  @keyframes status-pulse {
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.75;
+      transform: scale(1.03);
+    }
+  }
+  .animate-status-pulse {
+    animation: status-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
 }
 
 @layer base {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     box-sizing: border-box;
   }
 

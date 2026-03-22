@@ -50,98 +50,82 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-dvh bg-(--color-background) flex">
-      {/* Left — Branding */}
-      <div className="hidden lg:flex flex-col justify-between w-1/2 bg-(--color-surface) p-12 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-[0.03]">
-          <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full bg-(--color-primary)" />
-          <div className="absolute -bottom-32 -right-32 w-[400px] h-[400px] rounded-full bg-(--color-accent)" />
-        </div>
-
-        <div className="relative z-10">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-(--radius-md) bg-(--color-primary) flex items-center justify-center text-xl">
-              🍗
-            </div>
-            <span className="text-lg font-bold text-(--color-text-primary)">Two Brothers</span>
-          </div>
-        </div>
-
-        <div className="relative z-10">
-          <h1 className="text-5xl font-bold text-(--color-text-primary) leading-tight mb-4">
-            Pollos al
-            <br />
-            <span className="text-(--color-primary)">espiedo</span>
-            <br />
-            como siempre.
-          </h1>
-          <p className="text-(--color-text-secondary) text-lg leading-relaxed max-w-sm">
-            Pedí online, seguí tu orden en tiempo real y recibilo en la puerta de tu casa.
-          </p>
-        </div>
-
-        <div className="relative z-10">
-          <p className="text-sm text-(--color-text-muted)">Jueves a domingo · 20:00 – 00:00</p>
-        </div>
+    <div className="min-h-dvh bg-(--color-background) flex flex-col relative overflow-hidden">
+      {/* Atmospheric background */}
+      <div className="absolute inset-0 z-0">
+        <img
+          src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5qf320lP-Pd1gI_B1MVLvSatJyQ-tSAsaB8IJl4O60Z59sAn-i4fDFxfyab1IL13RLHkVLYcYI7Z19nnGzm8gvypUtYwv6Y9t2Onl1ETwIE-YFe0zEzs-ADzbeVM6bM7uUzS4_59f1h-ggk9Qc-gd9RmdievIGFk24ZK_Cw_U3ax76QC7K_fSufyjdNl-9tyr19gtWVZ6noGlsbreKRViFaw2Xl79DfTu69DlNR-Ax55tXzuJIeQWyKNcsJ_bTUTrD3rFIE07GE6u"
+          alt=""
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            e.currentTarget.style.display = 'none'
+          }}
+        />
+        <div className="absolute inset-0 culinary-noir-gradient" />
       </div>
 
-      {/* Right — Auth form */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
-        {/* Mobile logo */}
-        <div className="flex flex-col items-center mb-10 lg:hidden">
-          <div className="w-14 h-14 rounded-(--radius-lg) bg-(--color-primary) flex items-center justify-center text-3xl mb-3">
-            🍗
-          </div>
-          <span className="text-xl font-bold text-(--color-text-primary)">Two Brothers</span>
-          <p className="text-sm text-(--color-text-secondary) mt-1">Pollos al espiedo</p>
-        </div>
+      {/* Ambient glow */}
+      <div className="absolute bottom-1/3 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full amber-glow z-10 pointer-events-none" />
 
-        <div className="w-full max-w-sm">
-          <div className="bg-(--color-surface) rounded-(--radius-lg) p-8 border border-(--color-border)">
-            <h2 className="text-2xl font-bold text-(--color-text-primary) mb-1">Bienvenido</h2>
-            <p className="text-sm text-(--color-text-secondary) mb-8">
-              Iniciá sesión para hacer tu pedido
+      {/* Brand section */}
+      <div className="relative z-20 flex-grow flex flex-col justify-end items-center pb-14 px-6 text-center">
+        <h1 className="text-5xl font-black tracking-tighter text-(--color-text-primary) uppercase leading-none mb-3">
+          Two Brothers
+        </h1>
+        <p className="text-(--color-text-secondary) font-medium tracking-widest text-xs uppercase">
+          Pollos al espiedo · Desde el barrio
+        </p>
+      </div>
+
+      {/* Login card — bottom sheet */}
+      <div className="relative z-30 bg-(--color-surface) rounded-t-[24px] px-8 pt-10 pb-12 shadow-[0_-8px_48px_rgba(0,0,0,0.5)]">
+        {/* Drag indicator */}
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-1 bg-(--color-text-secondary)/10 rounded-full" />
+
+        <div className="max-w-md mx-auto">
+          <div className="mb-8">
+            <h2 className="text-2xl font-semibold text-(--color-text-primary) mb-1">
+              Bienvenido
+            </h2>
+            <p className="text-sm text-(--color-text-secondary) leading-relaxed">
+              Ingresá con tu cuenta de Google para hacer tu pedido
             </p>
-
-            <button
-              onClick={handleGoogleLogin}
-              disabled={loading}
-              className="w-full flex items-center justify-center gap-3 bg-(--color-surface-elevated) hover:bg-(--color-border) text-(--color-text-primary) font-medium py-3 px-4 rounded-(--radius-pill) border border-(--color-border) transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <div className="w-4 h-4 rounded-full border-2 border-(--color-text-muted) border-t-(--color-primary) animate-spin" />
-              ) : (
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                  <path
-                    d="M17.64 9.205c0-.639-.057-1.252-.164-1.841H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615Z"
-                    fill="#4285F4"
-                  />
-                  <path
-                    d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18Z"
-                    fill="#34A853"
-                  />
-                  <path
-                    d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332Z"
-                    fill="#FBBC05"
-                  />
-                  <path
-                    d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58Z"
-                    fill="#EA4335"
-                  />
-                </svg>
-              )}
-              {loading ? 'Iniciando sesión...' : 'Continuar con Google'}
-            </button>
-
-            <div className="mt-6 pt-6 border-t border-(--color-border)">
-              <p className="text-xs text-(--color-text-muted) text-center leading-relaxed">
-                Al continuar, aceptás los términos del servicio.
-                <br />
-                El acceso al panel de admin requiere autorización previa.
-              </p>
-            </div>
           </div>
 
+          {/* Google button */}
+          <button
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            className="w-full bg-white flex items-center justify-center gap-3 py-4 rounded-full transition-transform active:scale-[0.98] duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {loading ? (
+              <div className="w-5 h-5 rounded-full border-2 border-gray-300 border-t-gray-600 animate-spin" />
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  fill="#4285F4"
+                />
+                <path
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-1 .67-2.28 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  fill="#34A853"
+                />
+                <path
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"
+                  fill="#FBBC05"
+                />
+                <path
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  fill="#EA4335"
+                />
+              </svg>
+            )}
+            <span className="text-[#1a1b21] font-semibold text-base">
+              {loading ? 'Iniciando sesión...' : 'Continuar con Google'}
+            </span>
+          </button>
+
+          {/* Error messages */}
           {error === 'pending' && (
             <div className="mt-4 bg-[#3D2E10] border border-(--color-accent)/40 rounded-(--radius-lg) p-4">
               <p className="text-sm font-semibold text-(--color-accent)">
@@ -155,13 +139,23 @@ export default function LoginPage() {
           )}
 
           {error === 'oauth_failed' && (
-            <div className="mt-4 bg-[#3D1010] border border-[#E05252]/40 rounded-(--radius-lg) p-4">
-              <p className="text-sm font-semibold text-[#E05252]">Error al iniciar sesión</p>
-              <p className="text-xs text-[#E05252]/70 mt-1">
+            <div className="mt-4 bg-[#3D1010] border border-(--color-destructive)/40 rounded-(--radius-lg) p-4">
+              <p className="text-sm font-semibold text-(--color-destructive)">
+                Error al iniciar sesión
+              </p>
+              <p className="text-xs text-(--color-destructive)/70 mt-1">
                 Ocurrió un problema con Google. Intentá de nuevo.
               </p>
             </div>
           )}
+
+          {/* Legal footer */}
+          <div className="mt-10 text-center">
+            <p className="text-[12px] text-(--color-text-secondary)/50 leading-tight">
+              Al ingresar aceptás nuestros{' '}
+              <span className="underline cursor-pointer">términos y condiciones</span>
+            </p>
+          </div>
         </div>
       </div>
     </div>
