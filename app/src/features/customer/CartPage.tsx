@@ -1,6 +1,8 @@
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router'
 import { Trash2, ChevronRight } from 'lucide-react'
 import { useCartStore } from '@/store/cartStore'
+import { useAuthStore } from '@/store/authStore'
 import { cn } from '@/lib/utils'
 import { AddressSearchInput } from '@/components/AddressSearchInput'
 import { useCreateOrder } from '@/api/orders'
@@ -28,8 +30,15 @@ export default function CartPage() {
     setPaymentMethod,
     clearCart,
   } = useCartStore()
+  const { user, updateDefaultAddress } = useAuthStore()
   const createOrder = useCreateOrder()
   const { data: status } = useStoreStatus()
+
+  useEffect(() => {
+    if (modality === 'delivery' && !address && user?.default_address) {
+      setAddress(user.default_address)
+    }
+  }, [modality, address, user?.default_address, setAddress])
 
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
   const deliveryFee =
@@ -50,6 +59,7 @@ export default function CartPage() {
       },
       {
         onSuccess: (order) => {
+          if (modality === 'delivery' && address) updateDefaultAddress(address)
           clearCart()
           navigate(`/pedido/${order.id}`)
         },

@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router'
-import { ShoppingCart, ArrowLeft, LogOut } from 'lucide-react'
+import { ShoppingCart, ArrowLeft, LogOut, UserCircle } from 'lucide-react'
 import { useCartStore } from '@/store/cartStore'
 import ProtectedRoute from '@/features/auth/ProtectedRoute'
 import { useAuthStore } from '@/store/authStore'
@@ -45,6 +45,13 @@ export default function CustomerLayout() {
                 )}
               </Link>
             )}
+            <Link
+              to="/perfil"
+              title="Mi perfil"
+              className="p-1.5 text-(--color-text-muted) hover:text-(--color-text-primary) transition-colors"
+            >
+              <UserCircle size={20} />
+            </Link>
             <button
               onClick={handleLogout}
               title="Cerrar sesión"

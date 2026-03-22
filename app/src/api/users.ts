@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/lib/api'
+import { useAuthStore } from '@/store/authStore'
 import type { User, UserRole, UserStatus } from '@/types/users'
 
 interface PagyMeta {
@@ -32,6 +33,20 @@ export function useUsers(filters: UsersFilters = {}) {
   return useQuery({
     queryKey: ['users', filters],
     queryFn: () => api.get<UsersResponse>(`/api/v1/users${query ? `?${query}` : ''}`),
+  })
+}
+
+export function useUpdateProfile() {
+  const queryClient = useQueryClient()
+  const { setAuth, token } = useAuthStore()
+
+  return useMutation({
+    mutationFn: (payload: { default_address: string | null }) =>
+      api.patch<User>('/api/v1/me', { user: payload }),
+    onSuccess: (updatedUser) => {
+      if (token) setAuth(updatedUser, token)
+      queryClient.invalidateQueries({ queryKey: ['me'] })
+    },
   })
 }
 

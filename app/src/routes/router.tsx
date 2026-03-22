@@ -10,6 +10,7 @@ const CustomerMenuPage = lazy(() => import('@/features/customer/MenuPage'))
 const CustomerCartPage = lazy(() => import('@/features/customer/CartPage'))
 const CustomerOrderPage = lazy(() => import('@/features/customer/OrderPage'))
 const CustomerHistoryPage = lazy(() => import('@/features/customer/HistoryPage'))
+const CustomerProfilePage = lazy(() => import('@/features/customer/ProfilePage'))
 
 // Admin
 const AdminDashboardPage = lazy(() => import('@/features/admin/DashboardPage'))
@@ -45,6 +46,7 @@ export const router = createBrowserRouter([
       { path: 'carrito', element: <CustomerCartPage /> },
       { path: 'pedido/:id', element: <CustomerOrderPage /> },
       { path: 'historial', element: <CustomerHistoryPage /> },
+      { path: 'perfil', element: <CustomerProfilePage /> },
     ],
   },
 

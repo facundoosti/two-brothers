@@ -24,6 +24,7 @@ Rails.application.routes.draw do
 
       # Usuario autenticado
       get "/me", to: "users#me"
+      patch "/me", to: "users#update_me"
 
       # Menú (público - sin auth para GET)
       resources :categories, only: %i[index create update destroy]

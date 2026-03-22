@@ -7,6 +7,16 @@ module Api
         render json: UserBlueprint.render_as_hash(current_user)
       end
 
+      # PATCH /api/v1/me
+      def update_me
+        authorize current_user, :update_me?
+        if current_user.update(me_params)
+          render json: UserBlueprint.render_as_hash(current_user)
+        else
+          render_error(current_user.errors.full_messages.join(", "))
+        end
+      end
+
       # GET /api/v1/users
       def index
         authorize User
@@ -36,6 +46,10 @@ module Api
 
       def user_params
         params.require(:user).permit(:role, :status)
+      end
+
+      def me_params
+        params.require(:user).permit(:default_address)
       end
     end
   end

@@ -22,6 +22,7 @@ module Orders
       end
 
       if order.save
+        @user.update_column(:default_address, order.delivery_address) if order.delivery?
         success(order)
       else
         failure(order.errors.full_messages.join(", "))
