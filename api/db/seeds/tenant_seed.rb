@@ -18,11 +18,6 @@ puts "  → Creando settings para '#{store_name}'..."
   "mp_alias"            => ""
 }.each { |k, v| Setting[k] = v }
 
-puts "  → Creando categorías base..."
-Category.find_or_create_by!(name: "Principal")  { |c| c.position = 1 }
-Category.find_or_create_by!(name: "Adicionales") { |c| c.position = 2 }
-Category.find_or_create_by!(name: "Bebidas")    { |c| c.position = 3 }
-
 puts "  → Creando stock del día..."
 DailyStock.find_or_create_by!(date: Date.today) { |s| s.total = 100; s.used = 0 }
 
