@@ -105,7 +105,7 @@ module Api
       private
 
       def set_order
-        @order = Order.includes(order_items: :menu_item).find(params[:id])
+        @order = Order.find(params[:id])
       end
 
       def order_params

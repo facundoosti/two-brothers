@@ -1,9 +1,9 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { MapPin, Navigation, Phone, Clock, Package, CheckCircle2, Wifi } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import MapView from '@/components/MapView'
 import { useDeliveryAssignments, useUpdateAssignmentStatus } from '@/api/deliveryAssignments'
-import { useCreateDeliveryLocation, useLatestLocation } from '@/api/deliveryLocations'
+import { useCreateDeliveryLocation } from '@/api/deliveryLocations'
 
 // Coordenadas del local (Washington 133, Dolores)
 const LOCAL_COORDS: [number, number] = [-57.6833, -36.3192]
@@ -19,13 +19,10 @@ export default function DeliveryCurrentPage() {
   const updateStatus = useUpdateAssignmentStatus()
   const createLocation = useCreateDeliveryLocation()
   const watchIdRef = useRef<number | null>(null)
+  const [gpsCoords, setGpsCoords] = useState<[number, number] | null>(null)
 
   const assignment = data?.data.find(
     a => a.status === 'in_transit' || a.status === 'assigned'
-  )
-
-  const { data: location } = useLatestLocation(
-    assignment?.status === 'in_transit' ? assignment.id : undefined
   )
 
   // Track GPS position while in_transit and POST each movement to the API
@@ -35,6 +32,7 @@ export default function DeliveryCurrentPage() {
         navigator.geolocation.clearWatch(watchIdRef.current)
         watchIdRef.current = null
       }
+      setGpsCoords(null)
       return
     }
 
@@ -42,6 +40,7 @@ export default function DeliveryCurrentPage() {
 
     watchIdRef.current = navigator.geolocation.watchPosition(
       (pos) => {
+        setGpsCoords([pos.coords.longitude, pos.coords.latitude])
         createLocation.mutate({
           delivery_assignment_id: assignment.id,
           latitude: pos.coords.latitude,
@@ -62,12 +61,8 @@ export default function DeliveryCurrentPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assignment?.status, assignment?.id])
 
-  const deliveryCoords: [number, number] | null = location
-    ? [Number(location.longitude), Number(location.latitude)]
-    : null
-
-  const mapCenter: [number, number] = deliveryCoords
-    ? [(LOCAL_COORDS[0] + deliveryCoords[0]) / 2, (LOCAL_COORDS[1] + deliveryCoords[1]) / 2]
+  const mapCenter: [number, number] = gpsCoords
+    ? [(LOCAL_COORDS[0] + gpsCoords[0]) / 2, (LOCAL_COORDS[1] + gpsCoords[1]) / 2]
     : LOCAL_COORDS
 
   function handleStartDelivery() {
@@ -130,10 +125,10 @@ export default function DeliveryCurrentPage() {
           center={mapCenter}
           zoom={13}
           routeFrom={LOCAL_COORDS}
-          routeTo={deliveryCoords ?? LOCAL_COORDS}
+          routeTo={gpsCoords ?? LOCAL_COORDS}
           markers={[
             { lngLat: LOCAL_COORDS, kind: 'origin', tooltip: 'Two Brothers' },
-            ...(deliveryCoords ? [{ lngLat: deliveryCoords, kind: 'delivery' as const, tooltip: 'Tu posición' }] : []),
+            ...(gpsCoords ? [{ lngLat: gpsCoords, kind: 'delivery' as const, tooltip: 'Tu posición' }] : []),
           ]}
           className="absolute inset-0"
         />

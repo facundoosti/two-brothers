@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe Delivery::UpdateAssignmentStatusService, type: :service do
-  let(:order)      { create(:order, :ready) }
+  let(:order)      { create(:order, :ready, :delivery) }
   let(:assignment) { create(:delivery_assignment, order: order) }
 
   describe "transitioning to in_transit" do

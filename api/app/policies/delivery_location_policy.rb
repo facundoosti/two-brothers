@@ -5,6 +5,5 @@ class DeliveryLocationPolicy < ApplicationPolicy
   # `record` es el DeliveryAssignment al que pertenece la location.
   # Admin siempre puede; customer solo si la orden es suya.
   def latest? = admin? ||
-                (customer? && record.order.user_id == user.id) ||
-                (delivery? && record.user_id == user.id)
+                (customer? && record.order.user_id == user.id)
 end

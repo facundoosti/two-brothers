@@ -2,6 +2,7 @@ es:
   activerecord:
     errors:
       messages:
+        record_invalid: "La validación falló: %{errors}"
         blank: "no puede estar en blanco"
         taken: "ya está en uso"
         not_a_number: "no es un número"

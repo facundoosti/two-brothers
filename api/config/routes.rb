@@ -38,6 +38,7 @@ Rails.application.routes.draw do
     namespace :v1 do
       # Público — sin auth
       get "store_status", to: "store_status#show"
+      post "auth/google", to: "auth#google"
 
       # Session
       delete "/session", to: "sessions#destroy"

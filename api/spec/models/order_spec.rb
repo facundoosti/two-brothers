@@ -62,7 +62,7 @@ RSpec.describe Order, type: :model do
     end
 
     describe "start_delivering" do
-      subject(:order) { create(:order, :ready) }
+      subject(:order) { create(:order, :ready, :delivery) }
 
       it "transitions from ready to delivering" do
         order.start_delivering!
