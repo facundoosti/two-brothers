@@ -1,5 +1,7 @@
 module Dev
   class RoleSwitcherController < ApplicationController
+    skip_before_action :authenticate_user!, only: :switch_user
+
     ALLOWED_ROLES = %w[customer delivery admin].freeze
 
     # PATCH /dev/switch_role

@@ -4,6 +4,7 @@ import { createBrowserRouter } from 'react-router'
 import { lazy } from 'react'
 
 const LoginPage = lazy(() => import('@/features/auth/LoginPage'))
+const AuthCallbackPage = lazy(() => import('@/features/auth/AuthCallbackPage'))
 
 // Customer
 const CustomerMenuPage = lazy(() => import('@/features/customer/MenuPage'))
@@ -36,6 +37,10 @@ export const router = createBrowserRouter([
   {
     path: '/login',
     element: <LoginPage />,
+  },
+  {
+    path: '/auth/callback',
+    element: <AuthCallbackPage />,
   },
 
   // Customer routes (protected: customer, admin)

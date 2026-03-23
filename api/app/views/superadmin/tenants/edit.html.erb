@@ -1,0 +1,35 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Editar empresa</h1>
+    <p class="page-subtitle"><%= @tenant.subdomain %>.two-brothers.shop</p>
+  </div>
+  <%= link_to "← Volver", superadmin_tenants_path, class: "btn btn-ghost" %> <%# superadmin_tenants_path correcto %>
+</div>
+
+<div class="form-card">
+  <% if @tenant.errors.any? %>
+    <ul class="error-list">
+      <% @tenant.errors.full_messages.each do |msg| %>
+        <li><%= msg %></li>
+      <% end %>
+    </ul>
+  <% end %>
+
+  <%= form_with model: [:superadmin, @tenant], local: true do |f| %>
+    <div class="form-group">
+      <%= f.label :name, "Nombre de la empresa" %>
+      <%= f.text_field :name %>
+    </div>
+
+    <div class="form-group">
+      <%= f.label :subdomain, "Subdominio" %>
+      <%= f.text_field :subdomain, disabled: true, style: "opacity: 0.5; cursor: not-allowed;" %>
+      <p class="hint">El subdominio no se puede modificar después de la creación.</p>
+    </div>
+
+    <div class="form-actions">
+      <%= f.submit "Guardar cambios", class: "btn btn-primary" %>
+      <%= link_to "Cancelar", superadmin_tenants_path, class: "btn btn-ghost" %>
+    </div>
+  <% end %>
+</div>

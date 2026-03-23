@@ -41,7 +41,18 @@ module Api
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
 
+    # Re-add cookies/session/flash middleware removed by api_only mode.
+    # Required by the Superadmin panel (ActionController::Base + ERB views).
+    config.middleware.use ActionDispatch::Cookies
+    config.middleware.use ActionDispatch::Session::CookieStore, key: "_two_brothers_superadmin"
+    config.middleware.use ActionDispatch::Flash
+
     config.i18n.default_locale = :es
     config.i18n.available_locales = [ :es, :en ]
+
+    # Multi-tenancy: resolver de tenant por subdominio
+    # Debe ir después de Rack::Cors para que CORS se aplique antes del switch de schema
+    require_relative "../app/middleware/tenant_resolver"
+    config.middleware.use TenantResolver
   end
 end

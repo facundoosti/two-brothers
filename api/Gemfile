@@ -53,10 +53,16 @@ gem "geocoder"
 # Authorization — políticas de acceso por rol
 gem "pundit"
 
+# Multi-tenancy — aislamiento por PostgreSQL schemas (un schema por tenant)
+gem "ros-apartment", "~> 3.4", require: "apartment"
+
 # File uploads — Active Storage con S3-compatible (Supabase)
 gem "aws-sdk-s3", require: false
 
 group :development, :test do
+  # Carga variables de entorno desde .env
+  gem "dotenv-rails"
+
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
 

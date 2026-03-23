@@ -1,0 +1,49 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Nueva empresa</h1>
+    <p class="page-subtitle">Completa los datos para provisionar un nuevo tenant</p>
+  </div>
+  <%= link_to "← Volver", superadmin_tenants_path, class: "btn btn-ghost" %> <%# superadmin_tenants_path correcto %>
+</div>
+
+<div class="form-card">
+  <% if @tenant.errors.any? %>
+    <ul class="error-list">
+      <% @tenant.errors.full_messages.each do |msg| %>
+        <li><%= msg %></li>
+      <% end %>
+    </ul>
+  <% end %>
+
+  <%= form_with model: [:superadmin, @tenant], local: true do |f| %>
+    <div class="form-group">
+      <%= f.label :name, "Nombre de la empresa" %>
+      <%= f.text_field :name, placeholder: "ej: Tasty Chicken", autofocus: true %>
+    </div>
+
+    <div class="form-group">
+      <%= f.label :subdomain, "Subdominio" %>
+      <%= f.text_field :subdomain, placeholder: "ej: tastychicken" %>
+      <p class="hint">Solo letras minúsculas, números y guiones. No se puede cambiar después.</p>
+      <p class="hint" style="margin-top: 4px; color: #40c97f;">
+        → <span id="subdomain-preview">tastychicken</span>.two-brothers.shop
+      </p>
+    </div>
+
+    <div class="form-actions">
+      <%= f.submit "Crear empresa", class: "btn btn-primary" %>
+      <%= link_to "Cancelar", superadmin_tenants_path, class: "btn btn-ghost" %>
+    </div>
+  <% end %>
+</div>
+
+<script>
+  const input = document.querySelector('input[name="tenant[subdomain]"]')
+  const preview = document.getElementById('subdomain-preview')
+  if (input && preview) {
+    input.addEventListener('input', () => {
+      preview.textContent = input.value || 'subdomain'
+    })
+    preview.textContent = input.value || 'subdomain'
+  }
+</script>

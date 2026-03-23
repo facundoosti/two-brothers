@@ -1,6 +1,29 @@
 import { useAuthStore } from '@/store/authStore'
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:4000'
+/**
+ * URL base de la API.
+ *
+ * En desarrollo con subdominios (lvh.me), la API corre en el mismo host
+ * que el frontend pero en puerto diferente. Derivamos el host del browser
+ * para que el subdominio (tenant) viaje automáticamente en cada request.
+ *
+ * Ejemplos:
+ *   tastychicken.lvh.me:5173 → http://tastychicken.lvh.me:3000
+ *   localhost:5173           → http://localhost:3000
+ *
+ * En producción se puede sobreescribir con VITE_API_URL.
+ */
+function buildApiUrl(): string {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL
+  }
+
+  const { protocol, hostname } = window.location
+  const port = import.meta.env.VITE_API_PORT ?? '3000'
+  return `${protocol}//${hostname}:${port}`
+}
+
+const API_URL = buildApiUrl()
 
 async function request<T>(path: string, options?: RequestInit & { isForm?: boolean }): Promise<T> {
   const token = useAuthStore.getState().token

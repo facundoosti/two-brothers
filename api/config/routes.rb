@@ -1,10 +1,30 @@
 Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
+  # Admin root → redirige al panel de superadmin
+  constraints subdomain: "admin" do
+    root to: redirect("/superadmin/tenants"), as: :admin_root
+  end
+
+  # Landing page — two-brothers.shop (sin subdominio)
+  root "landing#index"
+
+  # Superadmin — accesible desde admin.two-brothers.shop (opera en schema public)
+  # Autenticación: HTTP Basic con SUPERADMIN_USERNAME / SUPERADMIN_PASSWORD
+  # Superadmin — accesible desde admin.two-brothers.shop (opera en schema public)
+  # new/edit se declaran explícitamente porque api_only:true los suprime por defecto
+  namespace :superadmin do
+    get  "tenants/new",          to: "tenants#new",  as: :new_tenant
+    get  "tenants/:id/edit",     to: "tenants#edit", as: :edit_tenant
+    resources :tenants, only: %i[index create update destroy]
+  end
+
   mount ActionCable.server => "/cable"
 
-  # Auth (top-level, fuera del namespace para usar AuthController directamente)
-  post "/api/v1/auth/google", to: "auth#google"
+  # Auth — flujo OAuth redirect (Authorization Code Flow)
+  # Registrar en Google Console: BASE_URL/auth/google/callback
+  get "/auth/google",          to: "auth#new_oauth"
+  get "/auth/google/callback", to: "auth#callback"
 
   # Dev tools (solo disponible en development)
   if Rails.env.development?

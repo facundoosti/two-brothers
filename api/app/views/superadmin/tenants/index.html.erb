@@ -1,0 +1,67 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Empresas</h1>
+    <p class="page-subtitle"><%= @tenants.count %> empresa<%= @tenants.count == 1 ? "" : "s" %> registrada<%= @tenants.count == 1 ? "" : "s" %></p>
+  </div>
+  <%= link_to "＋ Nueva empresa", superadmin_new_tenant_path, class: "btn btn-primary" %>
+</div>
+
+<div class="card">
+  <% if @tenants.empty? %>
+    <div class="empty-state">
+      <p>No hay empresas registradas todavía.</p>
+      <p><%= link_to "Crear la primera empresa", new_superadmin_tenant_path %></p>
+    </div>
+  <% else %>
+    <table>
+      <thead>
+        <tr>
+          <th>Empresa</th>
+          <th>Subdominio</th>
+          <th>Estado</th>
+          <th>Alta</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @tenants.each do |tenant| %>
+          <tr>
+            <td><strong><%= tenant.name %></strong></td>
+            <td>
+              <span class="subdomain"><%= tenant.subdomain %>.two-brothers.shop</span>
+            </td>
+            <td>
+              <% if tenant.active? %>
+                <span class="badge badge-active">Activo</span>
+              <% else %>
+                <span class="badge badge-inactive">Inactivo</span>
+              <% end %>
+            </td>
+            <td style="color: #7a8099; font-size: 13px;">
+              <%= tenant.created_at.strftime("%d/%m/%Y") %>
+            </td>
+            <td>
+              <div class="actions">
+                <%= link_to "Editar", superadmin_edit_tenant_path(tenant), class: "btn btn-ghost" %>
+                <% if tenant.active? %>
+                  <%= button_to "Desactivar",
+                        superadmin_tenant_path(tenant),
+                        method: :patch,
+                        params: { tenant: { active: false } },
+                        class: "btn btn-danger",
+                        data: { confirm: "¿Desactivar #{tenant.name}? Los usuarios no podrán acceder." } %>
+                <% else %>
+                  <%= button_to "Activar",
+                        superadmin_tenant_path(tenant),
+                        method: :patch,
+                        params: { tenant: { active: true } },
+                        class: "btn btn-primary" %>
+                <% end %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</div>

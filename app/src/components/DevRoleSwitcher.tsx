@@ -47,8 +47,6 @@ export default function DevRoleSwitcher() {
     }
   }
 
-  if (!user || !token) return null
-
   async function switchToUser(uid: string, home: string) {
     if (loading) return
     setLoading(uid)
@@ -84,14 +82,14 @@ export default function DevRoleSwitcher() {
           <circle cx="8" cy="8" r="1" fill="currentColor" />
         </svg>
         <p className="text-[10px] font-mono text-(--color-text-muted) uppercase tracking-widest">
-          Dev · <span className="text-(--color-primary)">{user.name.split(' ')[0]}</span>
+          Dev · <span className="text-(--color-primary)">{user?.name.split(' ')[0] ?? '—'}</span>
         </p>
       </div>
 
       {/* Buttons */}
       <div className="flex gap-1.5 px-3 pb-3">
         {DEV_USERS.map(({ uid, email, label, color, home }) => {
-          const isActive = user.email === email
+          const isActive = user?.email === email
           const isLoading = loading === uid
           return (
             <button

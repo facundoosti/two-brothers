@@ -83,3 +83,4 @@ es:
     order_cannot_be_cancelled: "La orden no se puede cancelar en su estado actual."
     category_has_orders: "No se puede eliminar la categoría porque tiene ítems con órdenes asociadas."
     menu_item_has_orders: "No se puede eliminar el ítem porque tiene órdenes asociadas."
+    tenant_not_found: "Empresa no encontrada."

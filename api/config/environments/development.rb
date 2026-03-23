@@ -62,8 +62,13 @@ Rails.application.configure do
   # Allow ActionCable connections from the frontend dev server.
   config.action_cable.allowed_request_origins = [
     ENV.fetch("FRONTEND_URL", "http://localhost:5173"),
-    /http:\/\/localhost(:\d+)?/
+    /http:\/\/localhost(:\d+)?/,
+    /http:\/\/[a-z0-9\-]+\.lvh\.me(:\d+)?/
   ]
+
+  # Permitir lvh.me (landing) y cualquier subdominio *.lvh.me (tenants)
+  config.hosts << "lvh.me"
+  config.hosts << /[a-z0-9\-]+\.lvh\.me/
 
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true

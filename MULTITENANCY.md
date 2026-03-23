@@ -6,12 +6,66 @@ Two Brothers evoluciona de una aplicación single-tenant a una **plataforma SaaS
 Cada empresa cliente (tenant) accede a la plataforma desde su propio subdominio:
 
 ```
-tastychicken.two-brothers.shop   → tenant: tastychicken
-elpollofeliz.two-brothers.shop   → tenant: elpollofeliz
-two-brothers.shop                → landing/marketing page
+tastychicken.two-brothers.shop   → tenant: tastychicken (app de la empresa)
+elpollofeliz.two-brothers.shop   → tenant: elpollofeliz (app de la empresa)
+two-brothers.shop                → landing page de marketing
+admin.two-brothers.shop          → panel superadmin (gestión de tenants)
 ```
 
 El aislamiento de datos se implementa con **PostgreSQL schemas** (un schema por tenant) gestionados por la gema **`apartment`**.
+
+---
+
+## Desarrollo local
+
+### Estrategia: `lvh.me` como default + variable de entorno como fallback
+
+**`lvh.me`** es un dominio público que resuelve a `127.0.0.1`. No requiere instalación ni configuración. Permite trabajar con subdominios reales en local:
+
+```
+tastychicken.lvh.me:3000   →  app del tenant "tastychicken"
+admin.lvh.me:3000          →  panel superadmin
+lvh.me:3000                →  landing page
+
+# Frontend (Vite)
+tastychicken.lvh.me:5173   →  frontend apuntando al tenant "tastychicken"
+```
+
+**Fallback — variable de entorno** (para cuando no hay internet):
+
+```env
+# api/.env
+DEFAULT_TENANT=tastychicken
+```
+
+El `TenantResolver` usa `DEFAULT_TENANT` si no detecta subdomain y el entorno es `development`:
+
+```ruby
+subdomain = extract_subdomain(request)
+subdomain ||= ENV["DEFAULT_TENANT"] if Rails.env.development?
+```
+
+### Variables de entorno frontend en desarrollo
+
+```env
+# app/.env
+VITE_API_BASE_URL=http://lvh.me:3000
+```
+
+El frontend construye la URL de la API usando el mismo host del browser (mismo origen), por lo que `tastychicken.lvh.me:5173` apunta automáticamente a `tastychicken.lvh.me:3000`.
+
+### Resumen rápido para arrancar a desarrollar
+
+```bash
+# 1. Levantar backend
+cd api && bin/rails server -p 3000
+
+# 2. Levantar frontend
+cd app && npm run dev -- --host lvh.me
+
+# 3. Abrir en el browser
+open http://tastychicken.lvh.me:5173
+```
 
 ---
 
@@ -239,26 +293,49 @@ end
 
 ## Autenticación OAuth por tenant
 
-Google OAuth redirige a un callback fijo. El tenant debe preservarse durante el flujo:
+**Decisión: callback unificado con parámetro `state`.**
+
+Google OAuth no soporta wildcards en URIs de redirección. Se usa un único callback registrado en Google Cloud Console y el tenant viaja en el parámetro `state` del flujo OAuth.
+
+### URL registrada en Google Cloud Console
+
+```
+https://two-brothers.shop/auth/google_oauth2/callback
+```
+
+### Flujo completo
 
 ```
 1. Usuario en tastychicken.two-brothers.shop hace click en "Login con Google"
-2. Frontend redirige a: tastychicken.two-brothers.shop/auth/google_oauth2
-3. TenantResolver activa el schema "tastychicken" antes de iniciar OAuth
-4. OmniAuth guarda state; el callback llega a tastychicken.two-brothers.shop/auth/google_oauth2/callback
-5. El token Bearer que retorna es válido solo dentro del schema "tastychicken"
+2. Frontend construye la URL de OAuth incluyendo el tenant en el state:
+     GET two-brothers.shop/auth/google_oauth2?tenant=tastychicken
+3. AuthController codifica el tenant en el parámetro `state` de OmniAuth
+4. Google autentica y redirige a: two-brothers.shop/auth/google_oauth2/callback?state=...
+5. TenantResolver no activa schema (estamos en two-brothers.shop sin subdomain)
+6. AuthController decodifica el tenant del `state`, activa el schema con
+     Apartment::Tenant.switch(tenant) { ... }
+   y crea/actualiza el usuario dentro de ese schema
+7. Retorna redirect al frontend: tastychicken.two-brothers.shop?token=xxx
 ```
 
-El callback URL en Google Cloud Console debe ser:
-```
-https://*.two-brothers.shop/auth/google_oauth2/callback   (wildcard, si Google lo soporta)
-# o uno por tenant si Google no soporta wildcards:
-https://tastychicken.two-brothers.shop/auth/google_oauth2/callback
-```
+### Implementación en AuthController
 
-> **Nota:** Google OAuth no soporta wildcards en URIs de redirección. Opciones:
-> - Registrar cada tenant manualmente en Google Cloud (simple pero no escala).
-> - Usar un dominio fijo de callback (`two-brothers.shop/auth/callback`) y pasar el tenant como parámetro de estado.
+```ruby
+# Paso 2 — el frontend agrega ?tenant= antes de iniciar OAuth
+# OmniAuth lo incluye en el state automáticamente si se pasa como query param
+# o se puede setear manualmente en el initializer de omniauth
+
+# Paso 6 — en el callback
+def callback
+  tenant_subdomain = extract_tenant_from_state(request.env["omniauth.params"])
+
+  Apartment::Tenant.switch(tenant_subdomain) do
+    # lógica existente de creación/login de usuario
+    user = User.find_or_create_from_omniauth(auth)
+    redirect_to "https://#{tenant_subdomain}.two-brothers.shop?token=#{user.auth_token}"
+  end
+end
+```
 
 ---
 
@@ -280,21 +357,62 @@ En Railway esto se configura como custom domain con wildcard en el proyecto.
 
 ## Superadmin — gestión de tenants
 
-Se necesita una capa de superadmin (fuera del schema de tenant) para:
+**Decisión: panel en `admin.two-brothers.shop` con auth usuario/contraseña via variables de entorno.**
 
-- Listar todos los tenants
-- Crear / desactivar tenants
-- Ver métricas globales (opcional, fase 2)
+Accesible solo para el operador de la plataforma (no es un rol dentro de ningún tenant).
+Permite dar de alta y gestionar empresas/subdomios.
+
+### Autenticación superadmin
+
+Sin Google OAuth. Credenciales fijas en variables de entorno del backend:
+
+```env
+SUPERADMIN_USERNAME=admin
+SUPERADMIN_PASSWORD=supersecretpassword
+```
+
+El `TenantResolver` identifica `admin.two-brothers.shop` como subdominio reservado y **no activa ningún schema de tenant** — las rutas superadmin operan directamente sobre `public`.
 
 ```ruby
-# Ruta superadmin — solo accesible desde two-brothers.shop (sin subdomain)
+# app/middleware/tenant_resolver.rb
+RESERVED_SUBDOMAINS = %w[www api admin].freeze
+```
+
+### Autenticación HTTP Basic para las rutas superadmin
+
+```ruby
+# app/controllers/superadmin/base_controller.rb
+class Superadmin::BaseController < ActionController::API
+  before_action :authenticate_superadmin!
+
+  private
+
+  def authenticate_superadmin!
+    authenticate_or_request_with_http_basic("Superadmin") do |user, pass|
+      ActiveSupport::SecurityUtils.secure_compare(user, ENV["SUPERADMIN_USERNAME"]) &
+        ActiveSupport::SecurityUtils.secure_compare(pass, ENV["SUPERADMIN_PASSWORD"])
+    end
+  end
+end
+```
+
+### Rutas
+
+```ruby
 # config/routes.rb
 namespace :superadmin do
   resources :tenants, only: [:index, :create, :update, :destroy]
 end
 ```
 
-El `TenantResolver` debe **no** activar ningún schema cuando no hay subdomain, permitiendo que estas rutas operen sobre `public`.
+### Acciones del panel superadmin
+
+| Acción | Descripción |
+|---|---|
+| Listar tenants | Ver todas las empresas, estado activo/inactivo |
+| Crear tenant | Nombre + subdomain → provisiona schema automáticamente |
+| Activar / desactivar | Habilita o bloquea el acceso al subdominio |
+| (Fase 2) Métricas | Órdenes totales por tenant, actividad reciente |
 
 ---
 
@@ -314,14 +432,25 @@ El `TenantResolver` debe **no** activar ningún schema cuando no hay subdomain, 
 - [ ] Seed por tenant: configuración inicial, categorías ejemplo
 - [ ] Script de migración para convertir el tenant actual (si existe data) al nuevo schema
 
-### Fase 3 — Frontend
+### Fase 3 — Frontend (app tenant)
 - [ ] Helper `tenant.ts` (`getCurrentTenant`)
-- [ ] Manejo de UI cuando no hay tenant (landing page o error 404)
-- [ ] Mostrar nombre/logo del tenant en el header (opcional)
+- [ ] Ajustar inicio de flujo OAuth para pasar `?tenant=` en la URL
+- [ ] Manejo de UI cuando no hay tenant (redirigir a landing)
+- [ ] Mostrar nombre/logo del tenant en el header (opcional, Fase 2)
 
 ### Fase 4 — OAuth
-- [ ] Definir estrategia de callback URL para múltiples tenants
-- [ ] Ajustar `AuthController` para preservar tenant en el flujo OAuth
+- [ ] Ajustar `AuthController#callback` para leer tenant del `state`
+- [ ] `Apartment::Tenant.switch` dentro del callback
+- [ ] Redirect post-login al subdominio correcto del tenant
+
+### Fase 5 — Panel superadmin
+- [ ] `Superadmin::BaseController` con HTTP Basic auth via ENV
+- [ ] `Superadmin::TenantsController` (index, create, update, destroy)
+- [ ] Frontend mínimo para el panel (puede ser HTML+ERB o React separado — decidir)
+
+### Fase 6 — Landing page (`two-brothers.shop`)
+- [ ] Diseño y contenido de la landing de marketing
+- [ ] Decidir tech: React separado o Rails views estáticas
 
 ### Fase 5 — Infraestructura / DNS
 - [ ] Configurar wildcard DNS en el registrador de `two-brothers.shop`
@@ -349,14 +478,17 @@ end
 
 ---
 
-## Decisiones pendientes
+## Decisiones
 
-| Decisión | Opciones | Estado |
-|---|---|---|
-| OAuth callback URL con múltiples tenants | (a) registrar por tenant, (b) callback unificado con state | ⏳ pendiente |
-| Landing page en `two-brothers.shop` | ¿React app separada? ¿Rails views? | ⏳ pendiente |
-| Plan de pricing / billing | fuera de scope inicial | ❌ fuera de scope |
-| Límite de tenants por plan | fuera de scope inicial | ❌ fuera de scope |
+| Decisión | Resolución |
+|---|---|
+| OAuth callback URL | ✅ Callback unificado en `two-brothers.shop`, tenant viaja en `state` |
+| Landing `two-brothers.shop` | ✅ Landing page de marketing |
+| Panel superadmin | ✅ `admin.two-brothers.shop`, auth HTTP Basic con credenciales en ENV |
+| Tech del panel superadmin | ✅ Rails ERB (vistas HTML simples, sin frontend separado) |
+| Tech de la landing | ✅ Rails ERB (vistas HTML simples, sin frontend separado) |
+| Plan de pricing / billing | ❌ fuera de scope |
+| Límite de tenants por plan | ❌ fuera de scope |
 
 ---
 

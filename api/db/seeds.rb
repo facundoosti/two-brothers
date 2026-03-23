@@ -1,3 +1,10 @@
+# ── Seeds de desarrollo ─────────────────────────────────────────────────────────
+# En multi-tenant, db:seed corre en el schema activo.
+# Para sembrar el tenant de dev:
+#   DEFAULT_TENANT=tastychicken bin/rails db:seed
+#
+# Si no hay tenant activo, estos seeds corren en public (solo útil si se eliminó el tenant de dev).
+
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
 def create_order(user:, modality:, payment_method:, total:, status:, items:, created_at: Time.current, delivery_address: nil, created_by: nil, cancelled_by: nil, cancelled_at: nil, cancellation_reason: nil)
