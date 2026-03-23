@@ -10,7 +10,7 @@
   <% if @tenants.empty? %>
     <div class="empty-state">
       <p>No hay empresas registradas todavía.</p>
-      <p><%= link_to "Crear la primera empresa", new_superadmin_tenant_path %></p>
+      <p><%= link_to "Crear la primera empresa", superadmin_new_tenant_path %></p>
     </div>
   <% else %>
     <table>

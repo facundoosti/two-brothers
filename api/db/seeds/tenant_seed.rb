@@ -21,4 +21,39 @@ puts "  → Creando settings para '#{store_name}'..."
 puts "  → Creando stock del día..."
 DailyStock.find_or_create_by!(date: Date.today) { |s| s.total = 100; s.used = 0 }
 
+puts "  → Creando usuarios de desarrollo..."
+admin = User.find_or_create_by!(uid: "seed_admin_001") do |u|
+  u.email     = "facundo@twobrothers.com"
+  u.provider  = "google"
+  u.name      = "Facundo Osti"
+  u.role      = :admin
+  u.status    = :active
+  u.api_token = SecureRandom.hex(32)
+end
+admin.update!(role: :admin, status: :active)
+
+delivery = User.find_or_create_by!(uid: "seed_delivery_001") do |u|
+  u.email     = "carlos.mendoza@gmail.com"
+  u.provider  = "google"
+  u.name      = "Carlos Mendoza"
+  u.role      = :delivery
+  u.status    = :active
+  u.api_token = SecureRandom.hex(32)
+end
+
+customer = User.find_or_create_by!(uid: "seed_customer_002") do |u|
+  u.email     = "lucas.fernandez@gmail.com"
+  u.provider  = "google"
+  u.name      = "Lucas Fernández"
+  u.role      = :customer
+  u.status    = :active
+  u.api_token = SecureRandom.hex(32)
+end
+
+puts ""
+puts "  === Tokens de acceso (solo dev) ==="
+puts "  Admin:    #{admin.api_token}"
+puts "  Delivery: #{delivery.api_token}"
+puts "  Cliente:  #{customer.api_token}"
+puts ""
 puts "  ✅ Tenant '#{store_name}' inicializado."
