@@ -6,4 +6,8 @@ class OrderItemBlueprint < Blueprinter::Base
   field :name do |oi|
     oi.menu_item.name
   end
+
+  field :image_url do |oi|
+    oi.menu_item.image.url if oi.menu_item.image.attached?
+  end
 end

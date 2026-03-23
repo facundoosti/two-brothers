@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { X, Plus, Minus, ShoppingBag } from 'lucide-react'
+import { sileo } from 'sileo'
 import { cn } from '@/lib/utils'
 import { useCategories } from '@/api/categories'
 import { useCreateCounterOrder } from '@/api/orders'
@@ -55,7 +56,10 @@ export default function CounterOrderModal({ onClose, onSuccess }: Props) {
           unit_price: m.price,
         })),
       },
-      { onSuccess: (order) => onSuccess(order.id) },
+      {
+        onSuccess: (order) => onSuccess(order.id),
+        onError: (err) => sileo.error({ title: err.message }),
+      },
     )
   }
 
@@ -158,9 +162,6 @@ export default function CounterOrderModal({ onClose, onSuccess }: Props) {
               <span className="text-xs text-(--color-text-muted)">
                 {totalChickens}/4 pollos
               </span>
-              {createCounter.isError && (
-                <p className="text-xs text-red-400 mt-0.5">{createCounter.error.message}</p>
-              )}
             </div>
             <span className="text-lg font-bold text-(--color-primary)">{formatPrice(totalPrice)}</span>
           </div>

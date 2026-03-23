@@ -1,14 +1,135 @@
 import { useState } from 'react'
 import { ArrowLeft, X, MapPin, CreditCard, CheckCircle2, ChevronDown } from 'lucide-react'
 import { Link, useParams } from 'react-router'
+import { sileo } from 'sileo'
 import AdminTopbar from './components/AdminTopbar'
 import { ORDER_STATUS_LABEL, ORDER_STATUS_CLASSES } from '@/lib/status'
 import { useOrder, useUpdateOrderStatus, useCancelOrder, useConfirmPayment } from '@/api/orders'
 import { useUsers } from '@/api/users'
 import { useCreateDeliveryAssignment } from '@/api/deliveryAssignments'
 import MapView from '@/components/MapView'
+import type { Order } from '@/types/orders'
 
 const LOCAL_COORDS: [number, number] = [-57.6833, -36.3192]
+
+// ── Status Timeline ─────────────────────────────────────────────────────────────
+
+type TimelineStep = {
+  label: string
+  ts: string | null
+  onlyFor?: 'delivery' | 'pickup'
+}
+
+function elapsedMinutes(from: string | null, to: string | null): number | null {
+  if (!from || !to) return null
+  return Math.round((new Date(to).getTime() - new Date(from).getTime()) / 60_000)
+}
+
+function fmtTime(ts: string): string {
+  return new Date(ts).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+}
+
+function fmtDate(ts: string): string {
+  return new Date(ts).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })
+}
+
+function StatusTimeline({ order }: { order: Order }) {
+  const steps: TimelineStep[] = [
+    { label: 'Creada',        ts: order.created_at },
+    { label: 'Confirmada',    ts: order.confirmed_at },
+    { label: 'Preparando',    ts: order.preparing_at },
+    { label: 'Lista',         ts: order.ready_at },
+    { label: 'En camino',     ts: order.delivering_at, onlyFor: 'delivery' },
+    { label: 'Entregada',     ts: order.delivered_at },
+  ].filter(s => !s.onlyFor || s.onlyFor === order.modality)
+
+  const cancelledStep = order.cancelled_at
+    ? { label: 'Cancelada', ts: order.cancelled_at }
+    : null
+
+  const visibleSteps = cancelledStep
+    ? [...steps.filter(s => s.ts), cancelledStep]
+    : steps
+
+  return (
+    <div className="card">
+      <div className="px-6 py-4 border-b border-(--color-border)">
+        <h2 className="font-semibold text-(--color-text-primary)">Línea de tiempo</h2>
+      </div>
+      <div className="px-6 py-5">
+        <div className="relative">
+          {/* Vertical connector */}
+          <div className="absolute left-[11px] top-3 bottom-3 w-px bg-(--color-border)" />
+
+          <div className="flex flex-col gap-0">
+            {visibleSteps.map((step, idx) => {
+              const prevTs = idx > 0 ? visibleSteps[idx - 1].ts : null
+              const elapsed = elapsedMinutes(prevTs, step.ts)
+              const isLast = idx === visibleSteps.length - 1
+              const isCancelled = step.label === 'Cancelada'
+              const isPending = !step.ts && !isCancelled
+
+              return (
+                <div key={step.label}>
+                  {/* Elapsed badge between steps */}
+                  {idx > 0 && elapsed !== null && (
+                    <div className="flex items-center gap-2 pl-[26px] py-1.5">
+                      <span className="text-[10px] text-(--color-text-muted) font-mono">
+                        +{elapsed} min
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex items-start gap-3">
+                    {/* Dot */}
+                    <div className={`relative z-10 mt-0.5 w-[23px] h-[23px] rounded-full border-2 flex items-center justify-center shrink-0 ${
+                      isPending
+                        ? 'bg-(--color-surface) border-(--color-border)'
+                        : isCancelled
+                          ? 'bg-[#E05252]/15 border-[#E05252]'
+                          : isLast
+                            ? 'bg-(--color-primary) border-(--color-primary)'
+                            : 'bg-(--color-surface-elevated) border-(--color-primary)'
+                    }`}>
+                      {!isPending && (
+                        <div className={`w-2 h-2 rounded-full ${isCancelled ? 'bg-[#E05252]' : 'bg-(--color-primary)'}`} />
+                      )}
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 flex items-center justify-between pb-1">
+                      <p className={`text-sm font-medium ${
+                        isPending
+                          ? 'text-(--color-text-muted)'
+                          : isCancelled
+                            ? 'text-[#E05252]'
+                            : 'text-(--color-text-primary)'
+                      }`}>
+                        {step.label}
+                      </p>
+                      {step.ts && (
+                        <div className="text-right">
+                          <p className="text-xs font-mono text-(--color-text-secondary)">
+                            {fmtTime(step.ts)} hs
+                          </p>
+                          <p className="text-[10px] text-(--color-text-muted)">
+                            {fmtDate(step.ts)}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Page ────────────────────────────────────────────────────────────────────────
 
 const PAYMENT_METHOD_LABEL = { cash: 'Efectivo', transfer: 'Transferencia' }
 const MODALITY_LABEL = { delivery: 'Delivery', pickup: 'Retiro en local' }
@@ -62,23 +183,37 @@ export default function OrderDetailPage() {
     : order.status
   const nextStatusLabel = NEXT_STATUS_LABEL[nextStatusLabelKey]
 
+  const onError = (err: Error) => sileo.error({ title: err.message })
+
   function handleNextStatus() {
     if (!nextStatus) return
     if (order.status === 'pending_payment') {
-      confirmPayment.mutate(order.id)
+      confirmPayment.mutate(order.id, {
+        onSuccess: () => sileo.success({ title: 'Pago confirmado' }),
+        onError,
+      })
     } else {
-      updateStatus.mutate({ id: order.id, status: nextStatus })
+      updateStatus.mutate({ id: order.id, status: nextStatus }, {
+        onSuccess: () => sileo.success({ title: 'Estado actualizado' }),
+        onError,
+      })
     }
   }
 
   function handleCancel() {
     if (!confirm('¿Cancelar esta orden?')) return
-    cancelOrder.mutate({ id: order.id })
+    cancelOrder.mutate({ id: order.id }, {
+      onSuccess: () => sileo.success({ title: 'Orden cancelada' }),
+      onError,
+    })
   }
 
   function handleAssignDelivery() {
     if (!selectedDeliveryUserId) return
-    createAssignment.mutate({ order_id: order.id, user_id: Number(selectedDeliveryUserId) })
+    createAssignment.mutate({ order_id: order.id, user_id: Number(selectedDeliveryUserId) }, {
+      onSuccess: () => sileo.success({ title: 'Repartidor asignado' }),
+      onError,
+    })
   }
 
   const isBusy = updateStatus.isPending || cancelOrder.isPending || confirmPayment.isPending || createAssignment.isPending
@@ -125,8 +260,11 @@ export default function OrderDetailPage() {
               <div className="divide-y divide-(--color-border)">
                 {order.order_items.map((item) => (
                   <div key={item.id} className="flex items-center gap-4 px-6 py-4">
-                    <div className="w-10 h-10 rounded-lg bg-(--color-surface-elevated) border border-(--color-border) flex items-center justify-center text-lg">
-                      🍗
+                    <div className="w-10 h-10 rounded-lg bg-(--color-surface-elevated) border border-(--color-border) overflow-hidden flex items-center justify-center shrink-0">
+                      {item.image_url
+                        ? <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+                        : <span className="text-lg">🍗</span>
+                      }
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-medium text-(--color-text-primary)">{item.name}</p>
@@ -143,21 +281,7 @@ export default function OrderDetailPage() {
             </div>
 
             {/* Status timeline */}
-            <div className="card">
-              <div className="px-6 py-4 border-b border-(--color-border)">
-                <h2 className="font-semibold text-(--color-text-primary)">Estado actual</h2>
-              </div>
-              <div className="px-6 py-4">
-                <p className="text-sm text-(--color-text-secondary)">
-                  Creada el{' '}
-                  <span className="text-(--color-text-primary)">
-                    {new Date(order.created_at).toLocaleString('es-AR', {
-                      day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
-                    })}
-                  </span>
-                </p>
-              </div>
-            </div>
+            <StatusTimeline order={order} />
 
             {/* Delivery map */}
             {order.modality === 'delivery' && order.latitude && order.longitude && (() => {

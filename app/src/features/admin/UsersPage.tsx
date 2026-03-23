@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Search, UserCog } from 'lucide-react'
+import { sileo } from 'sileo'
 import AdminTopbar from './components/AdminTopbar'
 import { cn } from '@/lib/utils'
 import { useUsers, useUpdateUser } from '@/api/users'
@@ -38,11 +39,20 @@ export default function UsersPage() {
   ]
 
   function changeRole(id: number, role: UserRole) {
-    updateUser.mutate({ id, role }, { onSuccess: () => setEditingId(null) })
+    updateUser.mutate({ id, role }, {
+      onSuccess: () => {
+        setEditingId(null)
+        sileo.success({ title: 'Rol actualizado' })
+      },
+      onError: (err) => sileo.error({ title: err.message }),
+    })
   }
 
   function activateUser(id: number) {
-    updateUser.mutate({ id, status: 'active' as UserStatus })
+    updateUser.mutate({ id, status: 'active' as UserStatus }, {
+      onSuccess: () => sileo.success({ title: 'Usuario activado' }),
+      onError: (err) => sileo.error({ title: err.message }),
+    })
   }
 
   return (

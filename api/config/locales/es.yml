@@ -81,3 +81,5 @@ es:
     order_not_pending_payment: "La orden no está en estado pendiente de pago."
     insufficient_stock_confirm: "Stock insuficiente para confirmar la orden."
     order_cannot_be_cancelled: "La orden no se puede cancelar en su estado actual."
+    category_has_orders: "No se puede eliminar la categoría porque tiene ítems con órdenes asociadas."
+    menu_item_has_orders: "No se puede eliminar el ítem porque tiene órdenes asociadas."

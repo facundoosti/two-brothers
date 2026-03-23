@@ -9,6 +9,16 @@ Este repositorio contiene dos proyectos separados:
 
 Cada carpeta tiene su propio `CLAUDE.md` con instrucciones específicas del proyecto.
 
+## Multi-Tenancy
+
+El proyecto implementa multi-tenancy por subdominio con la gema `apartment`.
+Ver planificación completa en **[MULTITENANCY.md](MULTITENANCY.md)**.
+
+- **Dominio:** `two-brothers.shop`
+- **Subdominio por tenant:** `{empresa}.two-brothers.shop`
+- **Aislamiento:** PostgreSQL schemas (un schema por tenant)
+- **Resolución:** middleware Rack `TenantResolver` detecta el subdomain en cada request
+
 ## Decisiones técnicas transversales
 
 | Decisión | Detalle |

@@ -118,9 +118,17 @@ export default function MenuPage() {
               key={item.id}
               className="bg-(--color-surface) rounded-(--radius-lg) p-4 flex items-center gap-4"
             >
-              <div className="w-16 h-16 rounded-(--radius-md) bg-(--color-surface-elevated) shrink-0 flex items-center justify-center text-2xl">
-                🍗
-              </div>
+              {item.image_url ? (
+                <img
+                  src={item.image_url}
+                  alt={item.name}
+                  className="w-16 h-16 rounded-(--radius-md) object-cover shrink-0"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-(--radius-md) bg-(--color-surface-elevated) shrink-0 flex items-center justify-center text-2xl">
+                  🍗
+                </div>
+              )}
 
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-(--color-text-primary)">{item.name}</p>
@@ -169,19 +177,19 @@ export default function MenuPage() {
         })}
       </div>
 
-      {/* Floating cart CTA — solo cuando el local está abierto */}
+      {/* Floating cart CTA — encima del bottom nav (z-50 > z-40) */}
       {totalItems > 0 && storeOpen && (
-        <div className="fixed bottom-0 left-0 right-0 p-4 bg-(--color-background)/80 backdrop-blur">
+        <div className="fixed bottom-20 left-0 right-0 z-50 px-4">
           <Link
             to="/carrito"
-            className="flex items-center justify-between w-full bg-(--color-primary) text-(--color-background) font-semibold px-5 py-3.5 rounded-(--radius-pill)"
+            className="flex items-center justify-between w-full bg-(--color-primary) text-(--color-background) font-semibold px-5 py-3.5 rounded-(--radius-pill) shadow-lg shadow-black/40"
           >
             <span className="bg-(--color-background)/20 text-xs font-bold px-2 py-0.5 rounded-full">
               {totalItems} {totalItems === 1 ? 'ítem' : 'ítems'}
             </span>
             <span className="flex items-center gap-2">
               <ShoppingCart size={15} />
-              Ver carrito
+              Continuar al carrito
             </span>
             <span className="text-sm font-bold">{formatPrice(totalPrice)}</span>
           </Link>

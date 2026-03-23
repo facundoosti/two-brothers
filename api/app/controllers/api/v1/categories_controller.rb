@@ -13,6 +13,7 @@ module Api
       def create
         authorize Category, :create?
         category = Category.new(category_params)
+        category.position ||= (Category.maximum(:position).to_i + 1)
         if category.save
           render json: CategoryBlueprint.render_as_hash(category, view: :with_items), status: :created
         else
@@ -37,6 +38,8 @@ module Api
         authorize category
         category.destroy!
         head :no_content
+      rescue ActiveRecord::InvalidForeignKey
+        render_error(I18n.t("errors.category_has_orders"), status: :unprocessable_entity)
       end
 
       private

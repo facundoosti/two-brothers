@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Save } from 'lucide-react'
+import { sileo } from 'sileo'
 import AdminTopbar from './components/AdminTopbar'
 import { useSettings, useUpdateSettings } from '@/api/settings'
 import { cn } from '@/lib/utils'
@@ -64,7 +65,10 @@ export default function SettingsPage() {
   }
 
   function handleSave() {
-    update.mutate(form)
+    update.mutate(form, {
+      onSuccess: () => sileo.success({ title: 'Configuración guardada' }),
+      onError: (err) => sileo.error({ title: err.message }),
+    })
   }
 
   if (isLoading) {
@@ -97,12 +101,6 @@ export default function SettingsPage() {
 
       <div className="flex-1 p-8 overflow-y-auto">
         <div className="max-w-2xl flex flex-col gap-6">
-
-          {update.isSuccess && (
-            <div className="px-4 py-3 rounded-(--radius-lg) bg-(--color-primary)/10 border border-(--color-primary)/30 text-sm text-(--color-primary)">
-              Configuración guardada correctamente.
-            </div>
-          )}
 
           {/* Local */}
           <section className="card p-6 flex flex-col gap-4">

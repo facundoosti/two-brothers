@@ -29,12 +29,22 @@ module Api
         authorize item
         item.destroy!
         head :no_content
+      rescue ActiveRecord::InvalidForeignKey
+        render_error(I18n.t("errors.menu_item_has_orders"), status: :unprocessable_entity)
+      end
+
+      # DELETE /api/v1/menu_items/:id/image
+      def destroy_image
+        item = MenuItem.find(params[:id])
+        authorize item, :update?
+        item.image.purge
+        render json: MenuItemBlueprint.render_as_hash(item)
       end
 
       private
 
       def menu_item_params
-        params.require(:menu_item).permit(:category_id, :name, :description, :price, :available, :image_url)
+        params.require(:menu_item).permit(:category_id, :name, :description, :price, :available, :image)
       end
     end
   end

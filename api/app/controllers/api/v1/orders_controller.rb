@@ -30,7 +30,7 @@ module Api
       def index
         authorize Order
         scope = policy_scope(Order)
-          .includes(:user, :order_items, :delivery_assignment)
+          .includes(:user, :delivery_assignment, order_items: :menu_item)
           .order(created_at: :desc)
 
         if current_user.admin?
@@ -105,7 +105,7 @@ module Api
       private
 
       def set_order
-        @order = Order.find(params[:id])
+        @order = Order.includes(order_items: :menu_item).find(params[:id])
       end
 
       def order_params

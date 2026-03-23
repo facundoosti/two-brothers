@@ -35,3 +35,23 @@ export function useDeleteMenuItem() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categories'] }),
   })
 }
+
+export function useUploadMenuItemImage() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, file }: { id: number; file: File }) => {
+      const form = new FormData()
+      form.append('menu_item[image]', file)
+      return api.patch_form<MenuItem>(`/api/v1/menu_items/${id}`, form)
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categories'] }),
+  })
+}
+
+export function useDeleteMenuItemImage() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => api.delete<MenuItem>(`/api/v1/menu_items/${id}/image`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categories'] }),
+  })
+}

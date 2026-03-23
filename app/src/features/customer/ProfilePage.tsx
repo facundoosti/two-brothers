@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { MapPin, Pencil, Trash2, Check, X, ChevronRight, LogOut } from 'lucide-react'
+import { sileo } from 'sileo'
 import { useAuthStore } from '@/store/authStore'
 import { useUpdateProfile } from '@/api/users'
 import { useOrders } from '@/api/orders'
@@ -47,12 +48,21 @@ export default function ProfilePage() {
     if (!draftAddress.trim()) return
     updateProfile.mutate(
       { default_address: draftAddress.trim() },
-      { onSuccess: () => setEditing(false) },
+      {
+        onSuccess: () => {
+          setEditing(false)
+          sileo.success({ title: 'Dirección guardada' })
+        },
+        onError: (err) => sileo.error({ title: err.message }),
+      },
     )
   }
 
   function handleRemove() {
-    updateProfile.mutate({ default_address: null })
+    updateProfile.mutate(
+      { default_address: null },
+      { onSuccess: () => sileo.success({ title: 'Dirección eliminada' }) },
+    )
   }
 
   function handleLogout() {
@@ -150,11 +160,6 @@ export default function ProfilePage() {
                 Cancelar
               </button>
             </div>
-            {updateProfile.isError && (
-              <p className="text-xs text-(--color-destructive) text-center">
-                {updateProfile.error.message}
-              </p>
-            )}
           </div>
         ) : user.default_address ? (
           <div className="bg-(--color-surface) rounded-(--radius-lg) p-5 flex items-start gap-4">

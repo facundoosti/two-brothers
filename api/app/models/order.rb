@@ -32,30 +32,37 @@ class Order < ApplicationRecord
 
     event :confirm_payment do
       transitions from: :pending_payment, to: :confirmed
+      before { self.confirmed_at = Time.current }
     end
 
     event :start_preparing do
       transitions from: :confirmed, to: :preparing
+      before { self.preparing_at = Time.current }
     end
 
     event :mark_ready do
       transitions from: :preparing, to: :ready
+      before { self.ready_at = Time.current }
     end
 
     event :start_delivering do
       transitions from: :ready, to: :delivering, guard: :delivery?
+      before { self.delivering_at = Time.current }
     end
 
     event :mark_delivered do
       transitions from: :delivering, to: :delivered
+      before { self.delivered_at = Time.current }
     end
 
     event :complete_pickup do
       transitions from: :pending_payment, to: :delivered, guard: :pickup?
+      before { self.confirmed_at = self.delivered_at = Time.current }
     end
 
     event :complete_ready_pickup do
       transitions from: :ready, to: :delivered, guard: :pickup?
+      before { self.delivered_at = Time.current }
     end
 
     event :cancel do

@@ -38,6 +38,7 @@ export interface OrderItem {
   quantity: number
   unit_price: number
   notes: string | null
+  image_url: string | null
 }
 
 export interface Order {
@@ -49,8 +50,13 @@ export interface Order {
   delivery_fee: number
   delivery_address: string | null
   cancellation_reason: string | null
-  cancelled_at: string | null
   created_at: string
+  confirmed_at: string | null
+  preparing_at: string | null
+  ready_at: string | null
+  delivering_at: string | null
+  delivered_at: string | null
+  cancelled_at: string | null
   paid: boolean
   delivery_assignment_id: number | null
   user: { name: string; email: string }

@@ -37,6 +37,11 @@ export function AddressSearchInput({
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
+  // Sync internal query when value is changed externally (e.g. default address loaded)
+  useEffect(() => {
+    setQuery(value)
+  }, [value])
+
   // Close dropdown on outside click
   useEffect(() => {
     function onMouseDown(e: MouseEvent) {

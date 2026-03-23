@@ -1,8 +1,9 @@
-import { useState } from 'react'
-import { Plus, Pencil, Trash2, X, Check } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { Plus, Pencil, Trash2, X, Check, Upload } from 'lucide-react'
+import { sileo } from 'sileo'
 import AdminTopbar from './components/AdminTopbar'
 import { useCategories, useCreateCategory, useUpdateCategory, useDeleteCategory } from '@/api/categories'
-import { useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem } from '@/api/menuItems'
+import { useCreateMenuItem, useUpdateMenuItem, useDeleteMenuItem, useUploadMenuItemImage, useDeleteMenuItemImage } from '@/api/menuItems'
 import type { CategoryWithItems, MenuItem } from '@/types/orders'
 
 interface ItemForm {
@@ -12,6 +13,7 @@ interface ItemForm {
   description: string
   price: string
   available: boolean
+  imageUrl: string | null
 }
 
 interface CatForm {
@@ -25,6 +27,7 @@ const EMPTY_ITEM_FORM = (categoryId: number): ItemForm => ({
   description: '',
   price: '',
   available: true,
+  imageUrl: null,
 })
 
 export default function MenuPage() {
@@ -32,6 +35,8 @@ export default function MenuPage() {
   const createItem = useCreateMenuItem()
   const updateItem = useUpdateMenuItem()
   const deleteItem = useDeleteMenuItem()
+  const uploadImage = useUploadMenuItemImage()
+  const deleteImage = useDeleteMenuItemImage()
   const createCat = useCreateCategory()
   const updateCat = useUpdateCategory()
   const deleteCat = useDeleteCategory()
@@ -39,14 +44,23 @@ export default function MenuPage() {
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null)
   const [itemForm, setItemForm] = useState<ItemForm | null>(null)
   const [catForm, setCatForm] = useState<CatForm | null>(null)
+  const [imageFile, setImageFile] = useState<File | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const activeCategoryId = selectedCategoryId ?? categories[0]?.id
   const selectedCategory: CategoryWithItems | undefined = categories.find(c => c.id === activeCategoryId)
   const visibleItems = selectedCategory?.menu_items ?? []
   const activeCount = visibleItems.filter(i => i.available).length
 
+  function resetImageState() {
+    setImageFile(null)
+    setImagePreview(null)
+  }
+
   function startEditItem(item: MenuItem) {
     setCatForm(null)
+    resetImageState()
     setItemForm({
       id: item.id,
       categoryId: item.category_id,
@@ -54,12 +68,31 @@ export default function MenuPage() {
       description: item.description ?? '',
       price: String(item.price),
       available: item.available,
+      imageUrl: item.image_url,
     })
   }
 
   function startCreateItem() {
     setCatForm(null)
+    resetImageState()
     setItemForm(EMPTY_ITEM_FORM(activeCategoryId))
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setImageFile(file)
+    setImagePreview(URL.createObjectURL(file))
+  }
+
+  function handleDeleteImage() {
+    if (!itemForm?.id) return
+    deleteImage.mutate(itemForm.id, {
+      onSuccess: () => {
+        setItemForm(f => f && ({ ...f, imageUrl: null }))
+        resetImageState()
+      },
+    })
   }
 
   function handleSaveItem() {
@@ -71,16 +104,32 @@ export default function MenuPage() {
       category_id: itemForm.categoryId,
       available: itemForm.available,
     }
+
+    const afterSave = (item: MenuItem) => {
+      if (imageFile) {
+        uploadImage.mutate({ id: item.id, file: imageFile }, {
+          onSuccess: () => { resetImageState(); setItemForm(null) },
+        })
+      } else {
+        setItemForm(null)
+      }
+    }
+
+    const onError = (err: Error) => sileo.error({ title: err.message })
+
     if (itemForm.id) {
-      updateItem.mutate({ id: itemForm.id, ...payload }, { onSuccess: () => setItemForm(null) })
+      updateItem.mutate({ id: itemForm.id, ...payload }, { onSuccess: afterSave, onError })
     } else {
-      createItem.mutate(payload, { onSuccess: () => setItemForm(null) })
+      createItem.mutate(payload, { onSuccess: afterSave, onError })
     }
   }
 
   function handleDeleteItem(id: number) {
     if (!confirm('¿Eliminás este ítem?')) return
-    deleteItem.mutate(id)
+    deleteItem.mutate(id, {
+      onSuccess: () => sileo.success({ title: 'Ítem eliminado' }),
+      onError: (err) => sileo.error({ title: err.message }),
+    })
   }
 
   function startEditCat(cat: CategoryWithItems) {
@@ -95,14 +144,16 @@ export default function MenuPage() {
 
   function handleSaveCat() {
     if (!catForm) return
+    const onError = (err: Error) => sileo.error({ title: err.message })
     if (catForm.id) {
-      updateCat.mutate({ id: catForm.id, name: catForm.name }, { onSuccess: () => setCatForm(null) })
+      updateCat.mutate({ id: catForm.id, name: catForm.name }, { onSuccess: () => setCatForm(null), onError })
     } else {
       createCat.mutate(catForm.name, {
         onSuccess: (cat) => {
           setCatForm(null)
           setSelectedCategoryId(cat.id)
         },
+        onError,
       })
     }
   }
@@ -112,14 +163,14 @@ export default function MenuPage() {
     deleteCat.mutate(cat.id, {
       onSuccess: () => {
         if (selectedCategoryId === cat.id) setSelectedCategoryId(null)
+        sileo.success({ title: `Categoría "${cat.name}" eliminada` })
       },
+      onError: (err) => sileo.error({ title: err.message }),
     })
   }
 
-  const isSavingItem = createItem.isPending || updateItem.isPending
+  const isSavingItem = createItem.isPending || updateItem.isPending || uploadImage.isPending
   const isSavingCat = createCat.isPending || updateCat.isPending
-  const itemError = (createItem.error ?? updateItem.error)?.message
-  const catError = (createCat.error ?? updateCat.error)?.message
 
   return (
     <>
@@ -196,7 +247,6 @@ export default function MenuPage() {
                 autoFocus
                 className="form-input text-sm py-1.5"
               />
-              {catError && <p className="text-xs text-(--color-destructive)">{catError}</p>}
               <div className="flex gap-1.5">
                 <button onClick={() => setCatForm(null)} className="btn-ghost flex-1 py-1.5 text-xs">Cancelar</button>
                 <button onClick={handleSaveCat} disabled={isSavingCat || !catForm.name.trim()} className="btn-primary flex-1 py-1.5 text-xs">
@@ -218,7 +268,7 @@ export default function MenuPage() {
             <table className="w-full text-sm">
               <thead className="sticky top-0 bg-(--color-sidebar) z-10">
                 <tr className="border-b border-(--color-border)">
-                  {['Nombre', 'Descripción', 'Precio', 'Estado', 'Acciones'].map(h => (
+                  {['', 'Nombre', 'Descripción', 'Precio', 'Estado', 'Acciones'].map(h => (
                     <th key={h} className="table-th">{h}</th>
                   ))}
                 </tr>
@@ -226,6 +276,13 @@ export default function MenuPage() {
               <tbody>
                 {visibleItems.map((item) => (
                   <tr key={item.id} className="table-row">
+                    <td className="table-td w-10">
+                      {item.image_url ? (
+                        <img src={item.image_url} alt={item.name} className="w-8 h-8 rounded object-cover" />
+                      ) : (
+                        <div className="w-8 h-8 rounded bg-(--color-surface-elevated) flex items-center justify-center text-sm">🍗</div>
+                      )}
+                    </td>
                     <td className="table-td font-medium text-(--color-text-primary)">{item.name}</td>
                     <td className="table-td text-(--color-text-secondary) max-w-[280px] truncate">{item.description}</td>
                     <td className="table-td font-medium text-(--color-text-primary)">${Number(item.price).toLocaleString('es-AR')}</td>
@@ -284,6 +341,64 @@ export default function MenuPage() {
                       className="form-input"
                     />
                   </div>
+
+                  {/* Imagen */}
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs text-(--color-text-secondary)">Imagen</label>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={handleFileChange}
+                    />
+                    {imagePreview ?? itemForm.imageUrl ? (
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={imagePreview ?? itemForm.imageUrl!}
+                          alt="preview"
+                          className="w-20 h-20 rounded-lg object-cover border border-(--color-border)"
+                        />
+                        <div className="flex flex-col gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="btn-ghost text-xs py-1.5 px-3"
+                          >
+                            Cambiar
+                          </button>
+                          {itemForm.imageUrl && !imageFile && (
+                            <button
+                              type="button"
+                              onClick={handleDeleteImage}
+                              disabled={deleteImage.isPending}
+                              className="btn-ghost text-xs py-1.5 px-3 text-(--color-destructive) border-(--color-destructive)/30 hover:bg-(--color-destructive)/10"
+                            >
+                              {deleteImage.isPending ? '...' : 'Eliminar'}
+                            </button>
+                          )}
+                          {imageFile && (
+                            <button
+                              type="button"
+                              onClick={() => { resetImageState(); if (fileInputRef.current) fileInputRef.current.value = '' }}
+                              className="btn-ghost text-xs py-1.5 px-3"
+                            >
+                              Cancelar
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="flex items-center gap-2 px-3 py-2.5 rounded-lg border border-dashed border-(--color-border) text-(--color-text-muted) hover:border-(--color-primary)/50 hover:text-(--color-text-secondary) transition-colors text-xs"
+                      >
+                        <Upload size={14} />
+                        Subir imagen
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex flex-col gap-3">
@@ -311,10 +426,6 @@ export default function MenuPage() {
                       {itemForm.available ? 'Activo' : 'Inactivo'}
                     </button>
                   </div>
-
-                  {itemError && (
-                    <p className="text-xs text-(--color-destructive)">{itemError}</p>
-                  )}
 
                   <div className="flex gap-2 mt-auto">
                     <button onClick={() => setItemForm(null)} className="btn-ghost flex-1 py-2">Cancelar</button>

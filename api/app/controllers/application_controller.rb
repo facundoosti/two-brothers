@@ -2,6 +2,7 @@ class ApplicationController < ActionController::API
   include Pagy::Method
   include Pundit::Authorization
 
+  before_action :set_active_storage_url_options
   before_action :authenticate_user!
 
   after_action { response.headers.merge!(@pagy.headers_hash) if @pagy }
@@ -39,6 +40,10 @@ class ApplicationController < ActionController::API
 
   def pundit_not_authorized
     render json: { error: I18n.t("errors.forbidden") }, status: :forbidden
+  end
+
+  def set_active_storage_url_options
+    ActiveStorage::Current.url_options = { host: request.base_url }
   end
 
   def render_error(message, status: :unprocessable_entity)

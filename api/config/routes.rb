@@ -28,7 +28,9 @@ Rails.application.routes.draw do
 
       # Menú (público - sin auth para GET)
       resources :categories, only: %i[index create update destroy]
-      resources :menu_items, only: %i[create update destroy]
+      resources :menu_items, only: %i[create update destroy] do
+        member { delete :image, to: 'menu_items#destroy_image' }
+      end
 
       # Órdenes
       resources :orders, only: %i[index show create] do
@@ -57,6 +59,7 @@ Rails.application.routes.draw do
       resources :users, only: %i[index update]
       resource :settings, only: %i[show update], controller: "settings"
       resource :dashboard, only: :show, controller: "dashboard"
+      resource :reports,   only: :show, controller: "reports"
       resource :daily_stock, only: %i[show update], controller: "daily_stocks"
     end
   end

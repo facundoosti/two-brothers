@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router'
 import { Trash2, ArrowRight, Banknote, Building2 } from 'lucide-react'
+import { sileo } from 'sileo'
 import { useCartStore } from '@/store/cartStore'
 import { useAuthStore } from '@/store/authStore'
 import { cn } from '@/lib/utils'
@@ -63,6 +64,7 @@ export default function CartPage() {
           clearCart()
           navigate(`/pedido/${order.id}`)
         },
+        onError: (err) => sileo.error({ title: err.message }),
       },
     )
   }
@@ -299,11 +301,6 @@ export default function CartPage() {
         {modality === 'delivery' && !address.trim() && (
           <p className="text-xs text-(--color-text-secondary) text-center mt-3">
             Ingresá tu dirección para continuar
-          </p>
-        )}
-        {createOrder.isError && (
-          <p className="text-xs text-(--color-destructive) text-center mt-3">
-            {createOrder.error.message}
           </p>
         )}
       </div>

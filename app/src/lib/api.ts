@@ -2,15 +2,16 @@ import { useAuthStore } from '@/store/authStore'
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:4000'
 
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
+async function request<T>(path: string, options?: RequestInit & { isForm?: boolean }): Promise<T> {
   const token = useAuthStore.getState().token
+  const { isForm, ...fetchOptions } = options ?? {}
 
   const res = await fetch(`${API_URL}${path}`, {
-    ...options,
+    ...fetchOptions,
     headers: {
-      'Content-Type': 'application/json',
+      ...(!isForm && { 'Content-Type': 'application/json' }),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...(options?.headers ?? {}),
+      ...(fetchOptions.headers ?? {}),
     },
   })
 
@@ -37,6 +38,8 @@ export const api = {
     request<T>(path, { method: 'POST', body: JSON.stringify(body) }),
   patch: <T>(path: string, body?: unknown) =>
     request<T>(path, { method: 'PATCH', body: JSON.stringify(body) }),
+  patch_form: <T>(path: string, body: FormData) =>
+    request<T>(path, { method: 'PATCH', body, isForm: true }),
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
 }
 
