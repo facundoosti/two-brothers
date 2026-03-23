@@ -101,4 +101,29 @@ RSpec.describe "Users API", type: :request do
       expect(response).to have_http_status(:unauthorized)
     end
   end
+
+  # ─── PATCH /api/v1/me ────────────────────────────────────────────────────
+
+  describe "PATCH /api/v1/me" do
+    it "updates the current user's default_address" do
+      patch "/api/v1/me",
+            params: { user: { default_address: "Av. Rivadavia 1234" } },
+            headers: auth_headers(customer)
+      expect(response).to have_http_status(:ok)
+      expect(customer.reload.default_address).to eq("Av. Rivadavia 1234")
+    end
+
+    it "returns the updated user" do
+      patch "/api/v1/me",
+            params: { user: { default_address: "Mitre 500" } },
+            headers: auth_headers(customer)
+      json = JSON.parse(response.body)
+      expect(json["id"]).to eq(customer.id)
+    end
+
+    it "returns 401 when unauthenticated" do
+      patch "/api/v1/me", params: { user: { default_address: "Fake" } }
+      expect(response).to have_http_status(:unauthorized)
+    end
+  end
 end

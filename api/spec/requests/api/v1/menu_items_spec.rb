@@ -97,4 +97,27 @@ RSpec.describe "Menu Items API", type: :request do
       expect(response).to have_http_status(:unauthorized)
     end
   end
+
+  # ─── DELETE /api/v1/menu_items/:id/image ─────────────────────────────────
+
+  describe "DELETE /api/v1/menu_items/:id/image" do
+    let!(:item) { create(:menu_item, category: category) }
+
+    it "returns 200 with the menu item as admin" do
+      delete "/api/v1/menu_items/#{item.id}/image", headers: auth_headers(admin)
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json["id"]).to eq(item.id)
+    end
+
+    it "returns 403 for non-admin" do
+      delete "/api/v1/menu_items/#{item.id}/image", headers: auth_headers(customer)
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    it "returns 401 when unauthenticated" do
+      delete "/api/v1/menu_items/#{item.id}/image"
+      expect(response).to have_http_status(:unauthorized)
+    end
+  end
 end

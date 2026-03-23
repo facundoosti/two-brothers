@@ -72,13 +72,14 @@ module Api
         orders
           .group("DATE(created_at)")
           .order("DATE(created_at) ASC")
-          .pluck("DATE(created_at)::text, SUM(total), COUNT(*)")
+          .pluck(Arel.sql("DATE(created_at)::text, SUM(total), COUNT(*)"))
           .map { |day, total, count| { day: day, value: total.to_f, orders: count } }
       end
 
       def build_top_items(orders)
         OrderItem.where(order: orders)
-          .group(:name)
+          .joins(:menu_item)
+          .group("menu_items.name")
           .sum(:quantity)
           .sort_by { |_, v| -v }
           .first(5)

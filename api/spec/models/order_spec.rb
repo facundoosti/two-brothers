@@ -96,5 +96,106 @@ RSpec.describe Order, type: :model do
         expect { order.cancel! }.to raise_error(AASM::InvalidTransition)
       end
     end
+
+    describe "complete_pickup" do
+      subject(:order) { create(:order) }
+
+      it "transitions from pending_payment to delivered for pickup orders" do
+        expect { order.complete_pickup! }.to change { order.status }.to("delivered")
+      end
+
+      it "sets both confirmed_at and delivered_at" do
+        order.complete_pickup!
+        expect(order.confirmed_at).to be_present
+        expect(order.delivered_at).to be_present
+      end
+
+      it "cannot complete_pickup on delivery modality" do
+        delivery_order = create(:order, :delivery, :confirmed)
+        expect { delivery_order.complete_pickup! }.to raise_error(AASM::InvalidTransition)
+      end
+    end
+
+    describe "complete_ready_pickup" do
+      subject(:order) { create(:order, :ready) }
+
+      it "transitions from ready to delivered for pickup orders" do
+        expect { order.complete_ready_pickup! }.to change { order.status }.to("delivered")
+      end
+
+      it "sets delivered_at" do
+        order.complete_ready_pickup!
+        expect(order.delivered_at).to be_present
+      end
+    end
+
+    describe "timestamp callbacks" do
+      it "sets confirmed_at on confirm_payment!" do
+        order.confirm_payment!
+        expect(order.confirmed_at).to be_present
+      end
+
+      it "sets preparing_at on start_preparing!" do
+        order.confirm_payment!
+        order.start_preparing!
+        expect(order.preparing_at).to be_present
+      end
+
+      it "sets ready_at on mark_ready!" do
+        order.confirm_payment!
+        order.start_preparing!
+        order.mark_ready!
+        expect(order.ready_at).to be_present
+      end
+
+      it "sets delivering_at on start_delivering!" do
+        delivery_order = create(:order, :ready, :delivery)
+        delivery_order.start_delivering!
+        expect(delivery_order.delivering_at).to be_present
+      end
+
+      it "sets delivered_at on mark_delivered!" do
+        delivering_order = create(:order, :delivering)
+        delivering_order.mark_delivered!
+        expect(delivering_order.delivered_at).to be_present
+      end
+    end
+  end
+
+  describe "#broadcast_status_change" do
+    subject(:order) { create(:order) }
+
+    it "broadcasts to order_status channel when status changes" do
+      expect(ActionCable.server).to receive(:broadcast).with("order_status_#{order.id}", hash_including(id: order.id))
+      expect(ActionCable.server).to receive(:broadcast).with("admin_orders", hash_including(id: order.id))
+      order.confirm_payment!
+    end
+
+    it "broadcasts the new status" do
+      expect(ActionCable.server).to receive(:broadcast).with("order_status_#{order.id}", hash_including(status: "confirmed"))
+      expect(ActionCable.server).to receive(:broadcast).with("admin_orders", anything)
+      order.confirm_payment!
+    end
+  end
+
+  describe "#should_geocode?" do
+    it "geocodes delivery orders when address changes" do
+      order = build(:order, :delivery)
+      expect(order).to receive(:geocode)
+      order.valid?
+    end
+
+    it "does not geocode pickup orders" do
+      order = build(:order)
+      expect(order).not_to receive(:geocode)
+      order.valid?
+    end
+
+    it "does not geocode delivery orders when address has not changed" do
+      order = create(:order, :delivery)
+      order.reload
+      expect(order).not_to receive(:geocode)
+      order.valid?
+    end
   end
 end
