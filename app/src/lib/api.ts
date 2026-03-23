@@ -49,7 +49,9 @@ async function request<T>(path: string, options?: RequestInit & { isForm?: boole
   const data = await res.json()
 
   if (!res.ok) {
-    throw new Error(data.error ?? `Error ${res.status}`)
+    const err = new Error(data.error ?? `Error ${res.status}`) as Error & { status: number }
+    err.status = res.status
+    throw err
   }
 
   return data as T

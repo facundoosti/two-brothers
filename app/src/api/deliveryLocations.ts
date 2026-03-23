@@ -22,7 +22,10 @@ export function useLatestLocation(assignmentId: number | string | undefined) {
     queryFn: () =>
       api.get<DeliveryLocation>(
         `/api/v1/delivery_assignments/${assignmentId}/latest_location`
-      ),
+      ).catch((err: Error & { status?: number }) => {
+        if (err.status === 404) return null
+        throw err
+      }),
     enabled: !!assignmentId,
     refetchInterval: 5_000,
   })
