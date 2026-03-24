@@ -2,7 +2,7 @@ module Api
   module V1
     class SettingsController < BaseController
       ALLOWED_KEYS = %w[
-        daily_chicken_stock mp_alias store_address store_name
+        mp_alias store_address store_name
         open_days opening_time closing_time
         delivery_fee delivery_fee_enabled
       ].freeze

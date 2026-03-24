@@ -1,8 +1,8 @@
-import { Package, Clock, CheckCircle2, BarChart2, ArrowRight } from 'lucide-react'
+import { Package, Clock, CheckCircle2, ArrowRight } from 'lucide-react'
 import { Link } from 'react-router'
 import AdminTopbar from './components/AdminTopbar'
 import { ORDER_STATUS_LABEL, ORDER_STATUS_CLASSES } from '@/lib/status'
-import { useDashboard, useDailyStock } from '@/api/dashboard'
+import { useDashboard } from '@/api/dashboard'
 import { useOrders } from '@/api/orders'
 import { useDeliveryAssignments } from '@/api/deliveryAssignments'
 import { useOrderStatus } from '@/hooks/useOrderStatus'
@@ -27,7 +27,6 @@ function StatusBadge({ status }: { status: OrderStatus }) {
 export default function DashboardPage() {
   useOrderStatus()
   const { data: stats } = useDashboard()
-  const { data: stock } = useDailyStock()
   const { data: ordersData } = useOrders()
   const { data: assignmentsData } = useDeliveryAssignments()
 
@@ -62,15 +61,6 @@ export default function DashboardPage() {
       icon: CheckCircle2,
       color: 'text-(--color-primary)',
     },
-    {
-      label: 'Stock disponible',
-      value: stock
-        ? `${stock.reduce((s, i) => s + i.available, 0)}/${stock.reduce((s, i) => s + i.total, 0)}`
-        : '—',
-      icon: BarChart2,
-      color: 'text-(--color-primary)',
-      large: true,
-    },
   ]
 
   return (
@@ -79,14 +69,14 @@ export default function DashboardPage() {
 
       <div className="flex-1 p-8 flex flex-col gap-6 overflow-y-auto">
         {/* Stat cards */}
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           {STATS.map((s) => (
             <div key={s.label} className="bg-(--color-surface) rounded-xl p-5 border border-(--color-border) flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <p className="text-xs text-(--color-text-secondary)">{s.label}</p>
                 <s.icon size={16} className="text-(--color-text-muted)" />
               </div>
-              <p className={`font-bold ${s.large ? 'text-3xl' : 'text-4xl'} ${s.color}`}>{s.value}</p>
+              <p className={`font-bold text-4xl ${s.color}`}>{s.value}</p>
             </div>
           ))}
         </div>

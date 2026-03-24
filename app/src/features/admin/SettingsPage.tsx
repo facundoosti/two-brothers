@@ -22,7 +22,6 @@ export default function SettingsPage() {
   const [form, setForm] = useState({
     store_name:           '',
     store_address:        '',
-    daily_chicken_stock:  '',
     mp_alias:             '',
     open_days:            '4,5,6,0',
     opening_time:         '20:00',
@@ -37,7 +36,6 @@ export default function SettingsPage() {
     setForm({
       store_name:           settings.store_name           ?? '',
       store_address:        settings.store_address        ?? '',
-      daily_chicken_stock:  settings.daily_chicken_stock  ?? '100',
       mp_alias:             settings.mp_alias             ?? '',
       open_days:            settings.open_days            ?? '4,5,6,0',
       opening_time:         settings.opening_time         ?? '20:00',
@@ -86,7 +84,7 @@ export default function SettingsPage() {
     <>
       <AdminTopbar
         title="Configuración"
-        subtitle="Horario, stock y datos del local"
+        subtitle="Horario y datos del local"
         actions={
           <button
             onClick={handleSave}
@@ -152,23 +150,6 @@ export default function SettingsPage() {
                 <input type="time" className="form-input" {...field('closing_time')} />
               </label>
             </div>
-          </section>
-
-          {/* Stock */}
-          <section className="card p-6 flex flex-col gap-4">
-            <h2 className="text-sm font-semibold text-(--color-text-primary)">Stock</h2>
-            <label className="flex flex-col gap-1.5">
-              <span className="text-xs text-(--color-text-secondary)">Pollos disponibles por día</span>
-              <input
-                type="number"
-                min="0"
-                className="form-input max-w-xs"
-                {...field('daily_chicken_stock')}
-              />
-              <span className="text-xs text-(--color-text-muted)">
-                El stock del día de hoy no cambia — aplica desde mañana.
-              </span>
-            </label>
           </section>
 
           {/* Pagos */}
