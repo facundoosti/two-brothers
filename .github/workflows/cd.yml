@@ -1,0 +1,111 @@
+name: CD — Deploy
+
+on:
+  workflow_run:
+    workflows: ["CI — API", "CI — App"]
+    branches: [main]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      service:
+        description: "Service to deploy"
+        required: true
+        type: choice
+        options: [api, app, all]
+        default: all
+
+permissions:
+  contents: read
+
+jobs:
+  # ─────────────────────────────────────────────
+  # Guard: only deploy when CI passed on main
+  # ─────────────────────────────────────────────
+  check:
+    name: Check CI status
+    runs-on: ubuntu-latest
+    outputs:
+      deploy_api: ${{ steps.decide.outputs.deploy_api }}
+      deploy_app: ${{ steps.decide.outputs.deploy_app }}
+    steps:
+      - name: Decide what to deploy
+        id: decide
+        run: |
+          # On manual dispatch, respect the 'service' input
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            SERVICE="${{ inputs.service }}"
+            echo "deploy_api=$([[ "$SERVICE" == "api" || "$SERVICE" == "all" ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+            echo "deploy_app=$([[ "$SERVICE" == "app" || "$SERVICE" == "all" ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # On workflow_run: only proceed if the triggering CI workflow succeeded
+          if [ "${{ github.event.workflow_run.conclusion }}" != "success" ]; then
+            echo "CI did not succeed — skipping deploy"
+            echo "deploy_api=false" >> "$GITHUB_OUTPUT"
+            echo "deploy_app=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          WORKFLOW="${{ github.event.workflow_run.name }}"
+          echo "deploy_api=$([[ "$WORKFLOW" == "CI — API" ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "deploy_app=$([[ "$WORKFLOW" == "CI — App" ]] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+  # ─────────────────────────────────────────────
+  # Deploy API → Railway
+  # ─────────────────────────────────────────────
+  deploy_api:
+    name: Deploy API (Railway)
+    runs-on: ubuntu-latest
+    needs: check
+    if: needs.check.outputs.deploy_api == 'true'
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy API service
+        working-directory: api
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway up --service ${{ vars.RAILWAY_API_SERVICE }} --detach
+
+  # ─────────────────────────────────────────────
+  # Deploy App → Railway (static site)
+  # ─────────────────────────────────────────────
+  deploy_app:
+    name: Deploy App (Railway)
+    runs-on: ubuntu-latest
+    needs: check
+    if: needs.check.outputs.deploy_app == 'true'
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install dependencies
+        working-directory: app
+        run: npm ci --legacy-peer-deps
+
+      - name: Build
+        working-directory: app
+        run: npm run build
+        env:
+          VITE_API_URL: ${{ vars.VITE_API_URL }}
+          VITE_GOOGLE_CLIENT_ID: ${{ secrets.VITE_GOOGLE_CLIENT_ID }}
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy App service
+        working-directory: app
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway up --service ${{ vars.RAILWAY_APP_SERVICE }} --detach
