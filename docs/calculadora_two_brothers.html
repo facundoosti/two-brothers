@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora Opción B — Two Brothers</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f0; color: #1a1a18; padding: 2rem 1rem; }
+.wrap { max-width: 860px; margin: 0 auto; }
+h1 { font-size: 20px; font-weight: 500; margin-bottom: 6px; }
+.subtitle { font-size: 14px; color: #5f5e5a; margin-bottom: 2rem; }
+.sec { margin-bottom: 2rem; }
+.st { font-size: 11px; font-weight: 500; color: #5f5e5a; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 12px; }
+.plan-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+@media (max-width: 600px) { .plan-grid { grid-template-columns: 1fr; } .mg4 { grid-template-columns: repeat(2,1fr) !important; } .sg2 { grid-template-columns: 1fr !important; } .rg { grid-template-columns: repeat(2,1fr) !important; } }
+.plan { background: #fff; border: 0.5px solid rgba(0,0,0,0.12); border-radius: 12px; padding: 1rem 1.25rem; }
+.plan.hl { border: 2px solid #185FA5; }
+.badge { display: inline-block; font-size: 11px; padding: 3px 10px; border-radius: 8px; margin-bottom: 8px; }
+.ba { background: #FAEEDA; color: #633806; }
+.bb { background: #E6F1FB; color: #0C447C; }
+.bt { background: #E1F5EE; color: #085041; }
+.pp { font-size: 22px; font-weight: 500; color: #1a1a18; }
+.ps { font-size: 12px; color: #5f5e5a; margin-bottom: 10px; }
+.pr { display: flex; justify-content: space-between; font-size: 12px; padding: 5px 0; border-top: 0.5px solid rgba(0,0,0,0.1); color: #5f5e5a; }
+.pr .v { font-weight: 500; color: #1a1a18; }
+.card { background: #fff; border: 0.5px solid rgba(0,0,0,0.12); border-radius: 12px; padding: 1rem 1.25rem; }
+.sl { margin-bottom: 14px; }
+.sl-top { display: flex; justify-content: space-between; font-size: 13px; color: #5f5e5a; margin-bottom: 4px; }
+.sl-top .val { font-weight: 500; color: #1a1a18; }
+input[type=range] { width: 100%; accent-color: #185FA5; cursor: pointer; }
+.rg { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px; }
+.rb { background: #f1efe8; border-radius: 8px; padding: 12px; }
+.rl { font-size: 11px; color: #5f5e5a; margin-bottom: 4px; }
+.rv { font-size: 17px; font-weight: 500; }
+.cn { color: #1a1a18; }
+.cg { color: #0F6E56; }
+.cb { color: #185FA5; }
+.cr { color: #A32D2D; }
+.tw { border: 0.5px solid rgba(0,0,0,0.12); border-radius: 12px; overflow: hidden; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
+th { background: #f1efe8; padding: 8px 10px; text-align: left; font-weight: 500; color: #5f5e5a; font-size: 11px; }
+td { padding: 8px 10px; border-top: 0.5px solid rgba(0,0,0,0.1); color: #1a1a18; }
+.tg { color: #0F6E56; font-weight: 500; }
+.tr2 { color: #A32D2D; font-weight: 500; }
+.ta { color: #854F0B; font-weight: 500; }
+.pill { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 99px; }
+.pg { background: #EAF3DE; color: #3B6D11; }
+.pa2 { background: #FAEEDA; color: #854F0B; }
+.pr2 { background: #FCEBEB; color: #A32D2D; }
+.mg4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.mc { background: #f1efe8; border-radius: 8px; padding: 14px; }
+.ml { font-size: 11px; color: #5f5e5a; margin-bottom: 4px; }
+.mv { font-size: 18px; font-weight: 500; color: #1a1a18; }
+.ms { font-size: 11px; color: #888780; margin-top: 2px; }
+.sg2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+.sc { background: #fff; border: 0.5px solid rgba(0,0,0,0.12); border-radius: 12px; padding: 1.25rem; }
+.sct { font-size: 13px; font-weight: 500; color: #5f5e5a; margin-bottom: 12px; padding-bottom: 10px; border-bottom: 0.5px solid rgba(0,0,0,0.1); }
+.sr { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; color: #5f5e5a; }
+.sr .sv { font-weight: 500; color: #1a1a18; }
+.sr .svg { font-weight: 500; color: #0F6E56; }
+.sr .sva { font-weight: 500; color: #854F0B; }
+.hl-box { border-radius: 8px; padding: 9px 12px; font-size: 12px; margin-top: 8px; }
+.divider { border-top: 0.5px solid rgba(0,0,0,0.12); margin: 2rem 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 10px; font-size: 12px; color: #5f5e5a; }
+.legend span { display: flex; align-items: center; gap: 4px; }
+.legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Calculadora de suscripción — Opción B</h1>
+<p class="subtitle">Two Brothers · Modelo híbrido con período de penetración, puente y adopción</p>
+
+<div class="sec">
+  <div class="st">Los tres planes</div>
+  <div class="plan-grid">
+    <div class="plan">
+      <div class="badge ba">Mes 1–2 · Penetración</div>
+      <div class="pp">USD 20</div>
+      <div class="ps">tarifa fija · sin variable</div>
+      <div class="pr"><span>Base en pesos (hoy)</span><span class="v">$28.300</span></div>
+      <div class="pr"><span>Variable</span><span class="v">—</span></div>
+      <div class="pr"><span>Duración</span><span class="v">2 meses</span></div>
+    </div>
+    <div class="plan hl">
+      <div class="badge bb">Mes 3 · Puente</div>
+      <div class="pp">USD 20</div>
+      <div class="ps">+ 0,3% sobre ventas delivered</div>
+      <div class="pr"><span>Base en pesos (hoy)</span><span class="v">$28.300</span></div>
+      <div class="pr"><span>Variable sobre $5M</span><span class="v">+$15.000</span></div>
+      <div class="pr"><span>Duración</span><span class="v">1 mes</span></div>
+    </div>
+    <div class="plan">
+      <div class="badge bt">Mes 4+ · Adopción</div>
+      <div class="pp">USD 25</div>
+      <div class="ps">+ 0,5% sobre ventas delivered</div>
+      <div class="pr"><span>Base en pesos (hoy)</span><span class="v">$35.375</span></div>
+      <div class="pr"><span>Variable sobre $5M</span><span class="v">+$25.000</span></div>
+      <div class="pr"><span>Duración</span><span class="v">indefinido</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="st">Calculadora interactiva</div>
+  <div class="card">
+    <div class="sl">
+      <div class="sl-top"><span>Cotización dólar blue</span><span class="val" id="outDolar">$1.415</span></div>
+      <input type="range" min="1000" max="2500" value="1415" step="5" oninput="onSlider()">
+    </div>
+    <div class="sl">
+      <div class="sl-top"><span>Clientes activos</span><span class="val" id="outClientes">4 clientes</span></div>
+      <input type="range" min="1" max="8" value="4" step="1" oninput="onSlider()">
+    </div>
+    <div class="sl">
+      <div class="sl-top"><span>Facturación promedio / tenant / mes</span><span class="val" id="outVentas">$5.000.000</span></div>
+      <input type="range" min="1000000" max="12000000" value="5000000" step="250000" oninput="onSlider()">
+    </div>
+    <div class="sl" style="margin-bottom:0;">
+      <div class="sl-top"><span>Mes del ciclo (define el plan activo)</span><span class="val" id="outMes">Mes 1 — Penetración</span></div>
+      <input type="range" min="1" max="12" value="1" step="1" oninput="onSlider()">
+    </div>
+    <div class="rg">
+      <div class="rb"><div class="rl">Plan activo</div><div class="rv cn" id="rPlan">Penetración</div></div>
+      <div class="rb"><div class="rl">Ingreso base</div><div class="rv cn" id="rBase">$113.200</div></div>
+      <div class="rb"><div class="rl">Ingreso variable</div><div class="rv cb" id="rVar">$0</div></div>
+      <div class="rb"><div class="rl">Ganancia neta</div><div class="rv cg" id="rGain">$73.200</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="st">Proyección 12 meses — crecimiento gradual (avg $5M/tenant · blue $1.415)</div>
+  <div class="legend">
+    <span><span class="legend-dot" style="background:#185FA5;"></span>Ingreso bruto</span>
+    <span><span class="legend-dot" style="background:#B4B2A9;"></span>Costo fijo</span>
+    <span><span class="legend-dot" style="background:#1D9E75;"></span>Ganancia neta</span>
+  </div>
+  <div style="position:relative;width:100%;height:240px;"><canvas id="growChart"></canvas></div>
+</div>
+
+<div class="sec">
+  <div class="st">Sensibilidad — plan adopción (mes 4+)</div>
+  <div class="tw">
+    <table>
+      <thead><tr>
+        <th style="width:12%">Clientes</th>
+        <th style="width:18%">Venta avg</th>
+        <th style="width:18%">Base USD 25</th>
+        <th style="width:16%">Variable 0,5%</th>
+        <th style="width:18%">Total</th>
+        <th style="width:18%">Ganancia</th>
+      </tr></thead>
+      <tbody id="sensTable"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<div class="sec">
+  <div class="st">Presentación al cliente</div>
+  <div class="sg2">
+    <div class="sc">
+      <div class="sct">Período de prueba (meses 1 y 2)</div>
+      <div class="sr"><span>Tarifa mensual</span><span class="sv">USD 20 · blue del día 1</span></div>
+      <div class="sr"><span>Variable</span><span class="sv">Sin porcentaje</span></div>
+      <div class="sr"><span>Permanencia</span><span class="sv">Sin compromiso</span></div>
+      <div class="sr"><span>Referencia hoy</span><span class="sv">~$28.300 / mes</span></div>
+      <div class="hl-box" style="background:#FAEEDA;color:#633806;">Tarifa fija, sin sorpresas.</div>
+    </div>
+    <div class="sc">
+      <div class="sct">Período de transición (mes 3)</div>
+      <div class="sr"><span>Tarifa mensual</span><span class="sv">USD 20 · blue del día 1</span></div>
+      <div class="sr"><span>Variable</span><span class="sv">0,3% sobre ventas</span></div>
+      <div class="sr"><span>Ejemplo con $5M</span><span class="sva">~$43.300 total</span></div>
+      <div class="sr"><span>Base de cálculo</span><span class="sv">Órdenes entregadas</span></div>
+      <div class="hl-box" style="background:#E6F1FB;color:#0C447C;">$15.000 cada $5M facturados.</div>
+    </div>
+    <div class="sc">
+      <div class="sct">Plan permanente (mes 4+)</div>
+      <div class="sr"><span>Tarifa mensual</span><span class="sv">USD 25 · blue del día 1</span></div>
+      <div class="sr"><span>Variable</span><span class="sv">0,5% sobre ventas</span></div>
+      <div class="sr"><span>Ejemplo con $5M</span><span class="svg">~$60.375 total</span></div>
+      <div class="sr"><span>Base de cálculo</span><span class="sv">Órdenes entregadas</span></div>
+      <div class="hl-box" style="background:#E1F5EE;color:#085041;">Menos del 1,2% de tu facturación.</div>
+    </div>
+    <div class="sc">
+      <div class="sct">Condiciones generales</div>
+      <div class="sr"><span>Actualización base</span><span class="sv">Blue del día 1 de cada mes</span></div>
+      <div class="sr"><span>Cálculo variable</span><span class="sv">Órdenes en estado delivered</span></div>
+      <div class="sr"><span>Cancelaciones</span><span class="sv">No cuentan para variable</span></div>
+      <div class="sr"><span>Reporte de ventas</span><span class="sv">Automático desde plataforma</span></div>
+      <div class="sr"><span>Facturación</span><span class="sv">Primeros 5 días del mes</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="st">Tu proyección — 4 clientes · avg $5M · blue $1.415</div>
+  <div class="mg4" style="margin-bottom:14px;">
+    <div class="mc"><div class="ml">Ingreso mes 1–2</div><div class="mv">$113.200</div><div class="ms">base pura · 4 clientes</div></div>
+    <div class="mc"><div class="ml">Ingreso mes 3 (puente)</div><div class="mv">$173.200</div><div class="ms">base + 0,3% · 4 clientes</div></div>
+    <div class="mc"><div class="ml">Ingreso mes 4+</div><div class="mv">$201.500</div><div class="ms">base + 0,5% · 4 clientes</div></div>
+    <div class="mc"><div class="ml">Ganancia neta mes 4+</div><div class="mv" style="color:#0F6E56;">$161.500</div><div class="ms">margen 404%</div></div>
+  </div>
+  <div class="tw">
+    <table>
+      <thead><tr>
+        <th style="width:9%">Mes</th>
+        <th style="width:17%">Plan</th>
+        <th style="width:12%">Clientes</th>
+        <th style="width:18%">Ingreso</th>
+        <th style="width:14%">Costo</th>
+        <th style="width:14%">Ganancia</th>
+        <th style="width:16%">Margen</th>
+      </tr></thead>
+      <tbody id="projTable"></tbody>
+    </table>
+  </div>
+</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+var FIXED = 40000;
+var DREF  = 1415;
+
+function getPlan(mes) {
+  if (mes <= 2) return 'pen';
+  if (mes === 3) return 'pte';
+  return 'ado';
+}
+function planName(p) {
+  return p==='pen'?'Penetración':p==='pte'?'Puente':'Adopción';
+}
+function ingreso(plan, c, v, d) {
+  if (plan==='pen') return 20*d*c;
+  if (plan==='pte') return (20*d*c)+(0.003*v*c);
+  return (25*d*c)+(0.005*v*c);
+}
+function fmt(n) { return '$'+Math.round(n).toLocaleString('es-AR'); }
+function fmtM(n) { return '$'+(n/1000000).toFixed(1)+'M'; }
+
+function onSlider() {
+  var sliders = document.querySelectorAll('input[type=range]');
+  var d  = parseInt(sliders[0].value);
+  var c  = parseInt(sliders[1].value);
+  var v  = parseInt(sliders[2].value);
+  var m  = parseInt(sliders[3].value);
+  var pl = getPlan(m);
+  var ing = ingreso(pl, c, v, d);
+  var base = pl==='ado' ? 25*d*c : 20*d*c;
+  var varv = ing - base;
+  var gain = ing - FIXED;
+
+  document.getElementById('outDolar').textContent    = '$'+d.toLocaleString('es-AR');
+  document.getElementById('outClientes').textContent = c+(c===1?' cliente':' clientes');
+  document.getElementById('outVentas').textContent   = fmtM(v);
+  document.getElementById('outMes').textContent      = 'Mes '+m+' — '+planName(pl);
+  document.getElementById('rPlan').textContent  = planName(pl);
+  document.getElementById('rBase').textContent  = fmt(base);
+  document.getElementById('rVar').textContent   = fmt(varv);
+  document.getElementById('rGain').textContent  = fmt(gain);
+  document.getElementById('rGain').className    = 'rv '+(gain>=0?'cg':'cr');
+}
+
+var clientesPorMes = [1,1,2,2,3,3,4,4,4,5,5,6];
+var mesesLabels    = ['M1','M2','M3','M4','M5','M6','M7','M8','M9','M10','M11','M12'];
+var ventaAvg = 5000000;
+
+var ingresos  = clientesPorMes.map(function(c,i){ return Math.round(ingreso(getPlan(i+1),c,ventaAvg,DREF)); });
+var costos    = clientesPorMes.map(function(){ return FIXED; });
+var ganancias = ingresos.map(function(v,i){ return v-costos[i]; });
+
+new Chart(document.getElementById('growChart'), {
+  type: 'bar',
+  data: {
+    labels: mesesLabels,
+    datasets: [
+      { label:'Ingreso bruto', data:ingresos,  backgroundColor:'#185FA5', borderRadius:3 },
+      { label:'Costo fijo',   data:costos,    backgroundColor:'#B4B2A9', borderRadius:3 },
+      { label:'Ganancia',     data:ganancias, backgroundColor:'#1D9E75', borderRadius:3 }
+    ]
+  },
+  options: {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{ legend:{ display:false } },
+    scales:{
+      x:{ ticks:{ autoSkip:false, font:{size:10}, maxRotation:0 }, grid:{ display:false } },
+      y:{ ticks:{ font:{size:11}, callback:function(v){ return '$'+Math.round(v/1000)+'k'; } }, grid:{ color:'rgba(128,128,128,0.1)' } }
+    }
+  }
+});
+
+var sensRows = [[2,3000000],[2,5000000],[3,4000000],[4,4000000],[4,6000000],[4,8000000],[5,5000000],[6,6000000]];
+var stbody = document.getElementById('sensTable');
+sensRows.forEach(function(r){
+  var c=r[0], v=r[1];
+  var ing = Math.round(ingreso('ado',c,v,DREF));
+  var gain = ing-FIXED;
+  var mg = Math.round((gain/FIXED)*100);
+  var tr = document.createElement('tr');
+  tr.innerHTML = '<td>'+c+'</td><td>'+fmtM(v)+'</td><td>'+fmt(25*DREF*c)+'</td><td>'+fmt(0.005*v*c)+'</td><td>'+fmt(ing)+'</td><td class="'+(gain>=0?'tg':'tr2')+'">'+fmt(gain)+'</td>';
+  stbody.appendChild(tr);
+});
+
+var planNames=['Penetración','Penetración','Puente','Adopción','Adopción','Adopción','Adopción','Adopción','Adopción','Adopción','Adopción','Adopción'];
+var ptbody = document.getElementById('projTable');
+clientesPorMes.forEach(function(c,i){
+  var pl  = getPlan(i+1);
+  var ing = ingresos[i];
+  var gain = ing-FIXED;
+  var mg = Math.round((gain/FIXED)*100);
+  var tr = document.createElement('tr');
+  tr.innerHTML = '<td>Mes '+(i+1)+'</td><td>'+planNames[i]+'</td><td>'+c+'</td><td class="'+(ing>FIXED?'tg':'ta')+'">'+fmt(ing)+'</td><td>'+fmt(FIXED)+'</td><td class="'+(gain>=0?'tg':'tr2')+'">'+fmt(gain)+'</td><td><span class="pill '+(mg>=50?'pg':mg>=0?'pa2':'pr2')+'">'+mg+'%</span></td>';
+  ptbody.appendChild(tr);
+});
+</script>
+</body>
+</html>
