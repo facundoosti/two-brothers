@@ -11,7 +11,7 @@
 
 ### 1.1 Filosofía Visual — "The Culinary Noir"
 
-UI editorial y de alta gama. El local vende pollos al espiedo como producto premium, no como fast food. La app debe transmitir eso. Claves:
+UI editorial y de alta gama. El local gastronómico vende su producto como oferta premium, no como fast food. La app debe transmitir eso. Claves:
 
 - **Asimetría intencional:** texto alineado a izquierda, imágenes que rompen la grilla
 - **Profundidad tonal:** separación de secciones solo por cambios de color de fondo, nunca con bordes
@@ -128,7 +128,7 @@ Usuario abre app
 **Propósito:** Revisión del carrito antes de confirmar el pedido.
 
 #### Reglas de negocio
-- Máximo **4 pollos por orden**
+- Máximo **4 unidades por orden**
 - Solo disponible en horario de atención (Jue–Dom, 20:00–00:00)
 - Stock validado al confirmar, no al agregar al carrito
 - Dirección del perfil se sugiere por defecto (editable por orden)
@@ -187,7 +187,7 @@ Cada ítem:
 |---|---|
 | Carrito vacío | Ilustración + texto `"Todavía no agregaste nada"` + CTA `"Ver menú"` |
 | Fuera de horario | Banner ámbar: `"Estamos cerrados. Volvemos el Jueves a las 20:00 hs."` — CTA deshabilitado |
-| Sin stock | Banner rojo: `"Se agotaron los pollos por hoy"` — CTA deshabilitado |
+| Sin stock | Banner rojo: `"Se agotó el producto por hoy"` — CTA deshabilitado |
 
 ---
 

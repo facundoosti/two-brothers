@@ -13,7 +13,7 @@ tags:
 
 # Two Brothers — Contexto MVP
 
-> App web responsive para la gestión integral de órdenes de un local de pollos al espiedo. Cubre desde el pedido online del cliente final hasta la gestión de cocina, mostrador, delivery y reportes.
+> App web responsive para la gestión integral de órdenes de un local gastronómico. Cubre desde el pedido online del cliente final hasta la gestión de cocina, mostrador, delivery y reportes.
 
 ---
 
@@ -35,7 +35,7 @@ tags:
 | Campo | Detalle |
 |---|---|
 | **Nombre** | Two Brothers |
-| **Rubro** | Gastronomía — Pollos al espiedo |
+| **Rubro** | Gastronomía — Locales gastronómicos |
 | **Tipo de app** | Web responsive (cliente específico) |
 | **Etapa** | Idea / definición inicial |
 | **Alcance MVP** | Pedidos online, mostrador, cocina, delivery, reportes |
@@ -402,10 +402,10 @@ DeliveryLocation             # Trackeo en tiempo real
   - recorded_at: datetime
 
 Setting                      # Configuración del local
-  - key: string              # unique: daily_chicken_stock, mp_alias, store_address, etc.
+  - key: string              # unique: daily_stock, mp_alias, store_address, etc.
   - value: string
 
-DailyStock                   # Stock de pollos por día
+DailyStock                   # Stock diario de producto por día
   - date: date
   - total: integer           # configurado para ese día
   - used: integer            # se incrementa al confirmar cada orden

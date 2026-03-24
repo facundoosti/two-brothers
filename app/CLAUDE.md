@@ -1,6 +1,6 @@
 # Two Brothers — CLAUDE.md
 
-App web responsive para la gestión integral de órdenes de un local de pollos al espiedo. Cubre desde el pedido online del cliente hasta cocina, delivery y reportes.
+App web responsive para la gestión integral de órdenes de un local gastronómico. Cubre desde el pedido online del cliente hasta cocina, delivery y reportes.
 
 ---
 
@@ -136,8 +136,8 @@ Autenticación: **Google OAuth 2.0** para todos los usuarios. El rol es asignado
 ## Reglas de Negocio Clave
 
 - **Creación y confirmación de pago:** el customer crea la orden → nace en `pending_payment`. El admin verifica que el pago fue recibido (efectivo o transferencia al alias CVU) y presiona "Confirmar pago" → pasa a `confirmed`. Recién desde `confirmed` el admin puede avanzar los demás estados.
-- **Stock diario:** 100 pollos/día por defecto (configurable). Resetea a las 00:00 via Sidekiq.
-- **Máximo por orden:** 4 pollos.
+- **Stock diario:** 100 unidades/día por defecto (configurable). Resetea a las 00:00 via Solid Queue.
+- **Máximo por orden:** 4 unidades.
 - **Stock se descuenta** al confirmar (`confirmed`). Se devuelve si se cancela desde `confirmed`.
 - **Horario:** Jueves a Domingo, 20:00–00:00. Fuera de horario: menú visible pero creación de órdenes bloqueada.
 - **Solo admin/operador** puede cancelar órdenes (hasta `confirmed` inclusive).

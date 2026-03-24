@@ -305,7 +305,7 @@ Variable de entorno opcional: `CONTACT_EMAIL` (se incluye en el User-Agent de No
 
 - **Creación de orden:** el customer crea la orden → nace en `pending_payment`. El admin verifica que el pago fue recibido (efectivo o transferencia) y llama a `confirm_payment` → pasa a `confirmed`. Solo a partir de `confirmed` el admin puede avanzar los demás estados.
 - Stock: se descuenta al `confirmed`, se devuelve al `cancelled` (si era `confirmed`).
-- Máximo 4 pollos por orden.
+- Máximo 4 unidades por orden.
 - Solo admin puede cancelar. Solo desde `pending_payment` o `confirmed`.
 - Órdenes creadas desde mostrador nacen directamente en `confirmed`.
 - Horario configurable desde `Setting["open_days"]`, `"opening_time"`, `"closing_time"`.

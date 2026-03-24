@@ -16,18 +16,18 @@ tags:
 
 ---
 
-## 1. Stock de Pollos
+## 1. Stock de Producto
 
 ### 1.1 Configuración
-- Existe un **stock diario de pollos enteros** configurable por el admin
-- El **stock por defecto es 100 pollos/día**
+- Existe un **stock diario de producto** configurable por el admin
+- El **stock por defecto es 100 unidades/día**
 - El admin puede modificar ese número manualmente antes o durante el día desde el panel
 - El stock **se resetea automáticamente cada día a las 00:00** via job de Solid Queue
-- Al resetear, se crea un nuevo registro `DailyStock` tomando el valor de `Setting: daily_chicken_stock` (default: 100)
+- Al resetear, se crea un nuevo registro `DailyStock` tomando el valor de `Setting: daily_stock` (default: 100)
 
 ### 1.2 Descuento de Stock
-- La unidad de stock es el **pollo entero**
-- En el MVP el menú solo tiene **pollo entero** — cada ítem de orden descuenta 1 unidad
+- La unidad de stock es el **producto principal del local** (configurable según el negocio)
+- Cada ítem de orden descuenta 1 unidad de stock
 - El stock se descuenta en el momento en que se **confirma la orden** (status: `confirmed`)
 - Si la orden es cancelada antes de ser confirmada, **no se descuenta stock**
 - Si la orden es cancelada después de `confirmed`, el stock **se devuelve** (+1 al disponible del día)
@@ -36,11 +36,11 @@ tags:
 - Si el stock disponible es **0**, el sistema bloquea la creación de nuevas órdenes
 - El portal del cliente muestra el mensaje:
 
-  > *"Se han agotado nuestros Pollos. ¡Gracias por comunicarte! Nuestro producto es limitado, ¡apurate a pedirlo!"*
+  > *"Se ha agotado nuestro producto. ¡Gracias por comunicarte! Nuestro producto es limitado, ¡apurate a pedirlo!"*
 
 - El menú público pasa a estado **"Sin stock"** — los ítems se muestran deshabilitados
-- El admin puede ver en el dashboard cuántos pollos quedan disponibles en el día
-- **El cliente puede pedir hasta 4 pollos por orden**
+- El admin puede ver en el dashboard cuántas unidades quedan disponibles en el día
+- **El cliente puede pedir hasta 4 unidades por orden**
 - Validación antes de confirmar: `used + cantidad_solicitada <= total`
 - Si el stock disponible es menor a la cantidad pedida, se bloquea la orden con mensaje de stock insuficiente
 
@@ -95,7 +95,7 @@ tags:
 ### 4.1 Ajustes configurables por el admin
 | Ajuste | Descripción |
 |---|---|
-| `daily_chicken_stock` | Stock diario por defecto de pollos enteros (default: 100) |
+| `daily_stock` | Stock diario por defecto del producto principal (default: 100) |
 | `mp_alias` | Alias CVU de Mercado Pago para recibir transferencias |
 | `store_address` | Dirección del local (para retiros) |
 | `store_name` | Nombre del local (Two Brothers) |
@@ -215,8 +215,8 @@ confirmed → preparing → ready ──[admin: marcar entregada]──► deliv
 
 | Fecha | Decisión | Estado |
 |---|---|---|
-| 2026-03-16 | Stock por defecto: 100 pollos/día, reseteo automático a las 00:00 | ✅ |
-| 2026-03-16 | Máximo 4 pollos por orden | ✅ |
+| 2026-03-16 | Stock por defecto: 100 unidades/día, reseteo automático a las 00:00 | ✅ |
+| 2026-03-16 | Máximo 4 unidades por orden | ✅ |
 | 2026-03-16 | Horario: 20:00–00:00 del mismo día, Jueves a Domingo | ✅ |
 | 2026-03-16 | Órdenes en curso al cierre siguen flujo normal sin interrupción | ✅ |
 | 2026-03-16 | Solo admin puede cancelar órdenes | ✅ |

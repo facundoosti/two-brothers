@@ -165,8 +165,8 @@ tags:
 
 | Número | Contexto |
 |---|---|
-| **100** | pollos/día — stock configurable |
-| **4** | máximo de pollos por orden |
+| **100** | unidades/día — stock configurable |
+| **4** | máximo de unidades por orden |
 | **Jue–Dom** | horario 20:00–00:00 hs (configurable) |
 
 ---
@@ -202,7 +202,7 @@ tags:
 > ## Reglas de negocio clave
 
 **📦 Stock diario**
-> 100 pollos por día (configurable). Se descuenta al confirmar. Se devuelve si se cancela. Máx. 4 por orden.
+> 100 unidades por día (configurable). Se descuenta al confirmar. Se devuelve si se cancela. Máx. 4 por orden.
 
 **🕐 Horario de atención**
 > Jueves a domingo, 20:00–00:00 hs. Fuera de horario el menú se muestra, pero los pedidos están bloqueados.
