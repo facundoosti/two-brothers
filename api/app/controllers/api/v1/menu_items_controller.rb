@@ -44,7 +44,7 @@ module Api
       private
 
       def menu_item_params
-        params.require(:menu_item).permit(:category_id, :name, :description, :price, :available, :image)
+        params.require(:menu_item).permit(:category_id, :name, :description, :price, :available, :daily_stock, :image)
       end
     end
   end

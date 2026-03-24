@@ -3,7 +3,7 @@ import { api } from '@/lib/api'
 
 export interface StoreStatus {
   open: boolean
-  stock_available: number
+  stock_available: boolean
   opening_time: string
   closing_time: string
   open_days: number[]   // 0 = domingo … 6 = sábado

@@ -3,8 +3,7 @@ require "rails_helper"
 RSpec.describe Orders::CreateCounterOrderService, type: :service do
   let(:admin)     { create(:user, :admin) }
   let(:category)  { create(:category) }
-  let(:menu_item) { create(:menu_item, category: category) }
-  let!(:stock)    { create(:daily_stock, date: Date.current, total: 100, used: 0) }
+  let(:menu_item) { create(:menu_item, category: category, daily_stock: 50) }
 
   let(:valid_params) do
     {
@@ -35,9 +34,13 @@ RSpec.describe Orders::CreateCounterOrderService, type: :service do
       expect(result.payload.created_by).to eq(admin)
     end
 
-    it "deducts stock" do
+    it "deducts stock for each item" do
+      stock = DailyStock.for_item_today(menu_item)
+      used_before = stock.used
+
       result
-      expect(stock.reload.used).to eq(2)
+
+      expect(stock.reload.used).to eq(used_before + 2)
     end
 
     it "sets confirmed_at timestamp" do
@@ -45,20 +48,20 @@ RSpec.describe Orders::CreateCounterOrderService, type: :service do
     end
   end
 
-  describe "max chickens validation" do
+  describe "max quantity per item exceeded" do
     let(:over_limit_params) do
       {
         payment_method: "cash",
         order_items_attributes: [
-          { menu_item_id: menu_item.id, quantity: 5, unit_price: 1500.00 }
+          { menu_item_id: menu_item.id, quantity: 11, unit_price: 1500.00 }
         ]
       }
     end
 
-    it "returns failure when quantity exceeds 4" do
+    it "returns failure" do
       result = described_class.call(admin: admin, params: over_limit_params)
       expect(result).not_to be_success
-      expect(result.error).to be_present
+      expect(result.error).to eq(I18n.t("errors.max_quantity_per_item", max: 10))
     end
 
     it "does not create an order" do
@@ -68,13 +71,27 @@ RSpec.describe Orders::CreateCounterOrderService, type: :service do
     end
 
     it "does not deduct stock" do
+      stock = DailyStock.for_item_today(menu_item)
       described_class.call(admin: admin, params: over_limit_params)
       expect(stock.reload.used).to eq(0)
     end
   end
 
-  describe "insufficient stock" do
-    let!(:stock) { create(:daily_stock, date: Date.current, total: 100, used: 99) }
+  describe "item without daily stock configured" do
+    let(:menu_item) { create(:menu_item, :no_stock, category: category) }
+
+    it "returns failure" do
+      result = described_class.call(admin: admin, params: valid_params)
+      expect(result).not_to be_success
+      expect(result.error).to include(I18n.t("errors.item_no_stock", name: menu_item.name))
+    end
+  end
+
+  describe "insufficient stock for item" do
+    before do
+      stock = DailyStock.for_item_today(menu_item)
+      stock.update!(used: 49) # only 1 available, but requesting 2
+    end
 
     it "returns failure" do
       result = described_class.call(admin: admin, params: valid_params)
@@ -90,12 +107,12 @@ RSpec.describe Orders::CreateCounterOrderService, type: :service do
   end
 
   describe "multiple order items" do
-    let(:menu_item2) { create(:menu_item, category: category) }
+    let(:menu_item2) { create(:menu_item, category: category, daily_stock: 50) }
     let(:multi_params) do
       {
         payment_method: "cash",
         order_items_attributes: [
-          { menu_item_id: menu_item.id, quantity: 1, unit_price: 1500.00 },
+          { menu_item_id: menu_item.id,  quantity: 1, unit_price: 1500.00 },
           { menu_item_id: menu_item2.id, quantity: 1, unit_price: 2000.00 }
         ]
       }
@@ -107,9 +124,14 @@ RSpec.describe Orders::CreateCounterOrderService, type: :service do
       expect(result.payload.order_items.count).to eq(2)
     end
 
-    it "deducts the total quantity (2 chickens)" do
+    it "deducts stock per item independently" do
+      stock1 = DailyStock.for_item_today(menu_item)
+      stock2 = DailyStock.for_item_today(menu_item2)
+
       described_class.call(admin: admin, params: multi_params)
-      expect(stock.reload.used).to eq(2)
+
+      expect(stock1.reload.used).to eq(1)
+      expect(stock2.reload.used).to eq(1)
     end
   end
 end

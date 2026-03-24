@@ -19,6 +19,8 @@
           <th>Empresa</th>
           <th>Subdominio</th>
           <th>Estado</th>
+          <th>Plan actual</th>
+          <th>Billing</th>
           <th>Alta</th>
           <th>Acciones</th>
         </tr>
@@ -35,6 +37,26 @@
                 <span class="badge badge-active">Activo</span>
               <% else %>
                 <span class="badge badge-inactive">Inactivo</span>
+              <% end %>
+            </td>
+            <%
+              sub        = tenant.subscriptions.active.first
+              last_bp    = sub&.billing_periods&.order(year: :desc, month: :desc)&.first
+            %>
+            <td>
+              <% if sub %>
+                <span class="badge <%= plan_badge_class(sub.current_plan.to_s) %>"><%= plan_label(sub.current_plan.to_s) %></span>
+              <% else %>
+                <span style="color: #7a8099; font-size: 12px;">—</span>
+              <% end %>
+            </td>
+            <td>
+              <% if last_bp %>
+                <%= link_to superadmin_billing_periods_path(tenant_id: tenant.id) do %>
+                  <span class="badge badge-<%= last_bp.status %>"><%= status_label(last_bp.status) %></span>
+                <% end %>
+              <% else %>
+                <span style="color: #7a8099; font-size: 12px;">—</span>
               <% end %>
             </td>
             <td style="color: #7a8099; font-size: 13px;">

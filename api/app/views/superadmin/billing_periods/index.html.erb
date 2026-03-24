@@ -1,0 +1,124 @@
+<style>
+  .badge-pending  { background: #2e2100; color: #f5a623; }
+  .badge-paid     { background: #0f2e1d; color: #40c97f; }
+  .badge-overdue  { background: #2a1e1e; color: #e05252; }
+  select {
+    background: #1e2130; border: 1px solid #252a35; border-radius: 8px;
+    padding: 8px 12px; font-size: 13px; color: #e8eaf0; outline: none; cursor: pointer;
+  }
+  input[type="number"] {
+    background: #1e2130; border: 1px solid #252a35; border-radius: 8px;
+    padding: 8px 12px; font-size: 13px; color: #e8eaf0; outline: none; width: 80px;
+  }
+</style>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Facturación</h1>
+    <p class="page-subtitle"><%= @billing_periods.count %> período(s)</p>
+  </div>
+  <div class="actions">
+    <%= link_to "Cotizaciones", superadmin_exchange_rates_path, class: "btn btn-ghost" %>
+  </div>
+</div>
+
+<%# Filtros %>
+<div class="card" style="padding: 16px 20px; margin-bottom: 20px;">
+  <%= form_with url: superadmin_billing_periods_path, method: :get, local: true do |f| %>
+    <div style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
+      <div>
+        <label style="display: block; font-size: 11px; font-weight: 600; color: #7a8099; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px;">Empresa</label>
+        <%= f.select :tenant_id,
+              options_from_collection_for_select(@tenants, :id, :name, params[:tenant_id]),
+              { include_blank: "Todas" } %>
+      </div>
+      <div>
+        <label style="display: block; font-size: 11px; font-weight: 600; color: #7a8099; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px;">Año</label>
+        <%= f.number_field :year, value: params[:year], placeholder: "2026" %>
+      </div>
+      <div>
+        <label style="display: block; font-size: 11px; font-weight: 600; color: #7a8099; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px;">Mes</label>
+        <%= f.number_field :month, value: params[:month], min: 1, max: 12, placeholder: "1–12" %>
+      </div>
+      <div>
+        <label style="display: block; font-size: 11px; font-weight: 600; color: #7a8099; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px;">Estado</label>
+        <%= f.select :status,
+              options_for_select([["Todos", ""], ["Pendiente", "pending"], ["Pagado", "paid"], ["Vencido", "overdue"]], params[:status]) %>
+      </div>
+      <%= f.submit "Filtrar", class: "btn btn-ghost" %>
+      <%= link_to "Limpiar", superadmin_billing_periods_path, class: "btn btn-ghost" %>
+    </div>
+  <% end %>
+</div>
+
+<%# Generar manualmente %>
+<div class="card" style="padding: 16px 20px; margin-bottom: 20px;">
+  <%= form_with url: generate_superadmin_billing_periods_path, method: :post, local: true do |f| %>
+    <div style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
+      <div>
+        <label style="display: block; font-size: 11px; font-weight: 600; color: #7a8099; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px;">Generar para año</label>
+        <%= f.number_field :year, value: Date.today.prev_month.year, placeholder: "2026" %>
+      </div>
+      <div>
+        <label style="display: block; font-size: 11px; font-weight: 600; color: #7a8099; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px;">Mes</label>
+        <%= f.number_field :month, value: Date.today.prev_month.month, min: 1, max: 12 %>
+      </div>
+      <%= f.submit "Generar períodos", class: "btn btn-primary" %>
+    </div>
+  <% end %>
+</div>
+
+<div class="card">
+  <% if @billing_periods.empty? %>
+    <div class="empty-state">
+      <p>No hay períodos de facturación que coincidan con los filtros.</p>
+    </div>
+  <% else %>
+    <table>
+      <thead>
+        <tr>
+          <th>Empresa</th>
+          <th>Mes</th>
+          <th>Plan</th>
+          <th>Base ARS</th>
+          <th>Ventas</th>
+          <th>Variable ARS</th>
+          <th>Total ARS</th>
+          <th>Estado</th>
+          <th>Vencimiento</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @billing_periods.each do |bp| %>
+          <tr>
+            <td><strong><%= bp.subscription.tenant.name %></strong></td>
+            <td style="color: #a8b0c8; font-size: 13px;"><%= bp.month %>/<%= bp.year %></td>
+            <td>
+              <span class="badge <%= plan_badge_class(bp.plan) %>"><%= plan_label(bp.plan) %></span>
+            </td>
+            <td style="font-family: monospace; font-size: 13px;">$<%= number_with_delimiter(bp.base_ars.to_f.round(2), delimiter: '.', separator: ',') %></td>
+            <td style="font-family: monospace; font-size: 13px;">$<%= number_with_delimiter(bp.delivered_sales_ars.to_f.round(2), delimiter: '.', separator: ',') %></td>
+            <td style="font-family: monospace; font-size: 13px;">$<%= number_with_delimiter(bp.variable_ars.to_f.round(2), delimiter: '.', separator: ',') %></td>
+            <td style="font-family: monospace; font-size: 13px; font-weight: 600;">$<%= number_with_delimiter(bp.total_ars.to_f.round(2), delimiter: '.', separator: ',') %></td>
+            <td>
+              <span class="badge badge-<%= bp.status %>"><%= status_label(bp.status) %></span>
+            </td>
+            <td style="color: #7a8099; font-size: 13px;"><%= bp.due_date&.strftime("%d/%m/%Y") %></td>
+            <td>
+              <div class="actions">
+                <%= link_to "Ver", superadmin_billing_period_path(bp), class: "btn btn-ghost" %>
+                <% unless bp.paid? %>
+                  <%= button_to "Marcar pagado",
+                        mark_paid_superadmin_billing_period_path(bp),
+                        method: :patch,
+                        class: "btn btn-primary" %>
+                <% end %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</div>

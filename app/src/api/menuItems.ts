@@ -8,6 +8,7 @@ interface MenuItemPayload {
   price: number
   category_id: number
   available?: boolean
+  daily_stock?: number | null
 }
 
 export function useCreateMenuItem() {

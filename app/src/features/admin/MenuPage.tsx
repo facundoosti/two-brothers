@@ -12,6 +12,7 @@ interface ItemForm {
   name: string
   description: string
   price: string
+  dailyStock: string
   available: boolean
   imageUrl: string | null
 }
@@ -26,6 +27,7 @@ const EMPTY_ITEM_FORM = (categoryId: number): ItemForm => ({
   name: '',
   description: '',
   price: '',
+  dailyStock: '',
   available: true,
   imageUrl: null,
 })
@@ -67,6 +69,7 @@ export default function MenuPage() {
       name: item.name,
       description: item.description ?? '',
       price: String(item.price),
+      dailyStock: item.daily_stock != null ? String(item.daily_stock) : '',
       available: item.available,
       imageUrl: item.image_url,
     })
@@ -103,6 +106,7 @@ export default function MenuPage() {
       price: Number(itemForm.price),
       category_id: itemForm.categoryId,
       available: itemForm.available,
+      daily_stock: itemForm.dailyStock !== '' ? Number(itemForm.dailyStock) : null,
     }
 
     const afterSave = (item: MenuItem) => {
@@ -268,7 +272,7 @@ export default function MenuPage() {
             <table className="w-full text-sm">
               <thead className="sticky top-0 bg-(--color-sidebar) z-10">
                 <tr className="border-b border-(--color-border)">
-                  {['', 'Nombre', 'Descripción', 'Precio', 'Estado', 'Acciones'].map(h => (
+                  {['', 'Nombre', 'Descripción', 'Precio', 'Stock/día', 'Estado', 'Acciones'].map(h => (
                     <th key={h} className="table-th">{h}</th>
                   ))}
                 </tr>
@@ -286,6 +290,9 @@ export default function MenuPage() {
                     <td className="table-td font-medium text-(--color-text-primary)">{item.name}</td>
                     <td className="table-td text-(--color-text-secondary) max-w-[280px] truncate">{item.description}</td>
                     <td className="table-td font-medium text-(--color-text-primary)">${Number(item.price).toLocaleString('es-AR')}</td>
+                    <td className="table-td text-(--color-text-secondary)">
+                      {item.daily_stock != null ? item.daily_stock : <span className="text-(--color-text-muted)">—</span>}
+                    </td>
                     <td className="table-td">
                       <span className={`badge ${item.available ? 'bg-(--color-primary)/15 text-(--color-primary)' : 'bg-(--color-text-secondary)/15 text-(--color-text-secondary)'}`}>
                         {item.available ? 'Activo' : 'Inactivo'}
@@ -328,7 +335,7 @@ export default function MenuPage() {
                     <input
                       value={itemForm.name}
                       onChange={e => setItemForm(f => f && ({ ...f, name: e.target.value }))}
-                      placeholder="Ej: Pollo entero al espiedo"
+                      placeholder="Ej: Milanesa de pollo"
                       className="form-input"
                     />
                   </div>
@@ -337,7 +344,7 @@ export default function MenuPage() {
                     <input
                       value={itemForm.description}
                       onChange={e => setItemForm(f => f && ({ ...f, description: e.target.value }))}
-                      placeholder="Pollo completo criado de chacra"
+                      placeholder="Descripción del producto"
                       className="form-input"
                     />
                   </div>
@@ -409,6 +416,17 @@ export default function MenuPage() {
                       onChange={e => setItemForm(f => f && ({ ...f, price: e.target.value }))}
                       placeholder="8500"
                       type="number"
+                      className="form-input"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs text-(--color-text-secondary)">Stock diario</label>
+                    <input
+                      value={itemForm.dailyStock}
+                      onChange={e => setItemForm(f => f && ({ ...f, dailyStock: e.target.value }))}
+                      placeholder="Sin límite"
+                      type="number"
+                      min="0"
                       className="form-input"
                     />
                   </div>

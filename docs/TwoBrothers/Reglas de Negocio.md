@@ -16,33 +16,29 @@ tags:
 
 ---
 
-## 1. Stock de Producto
+## 1. Stock de Producto por Ítem
 
 ### 1.1 Configuración
-- Existe un **stock diario de producto** configurable por el admin
-- El **stock por defecto es 100 unidades/día**
-- El admin puede modificar ese número manualmente antes o durante el día desde el panel
-- El stock **se resetea automáticamente cada día a las 00:00** via job de Solid Queue
-- Al resetear, se crea un nuevo registro `DailyStock` tomando el valor de `Setting: daily_stock` (default: 100)
+- Cada `MenuItem` tiene un campo `daily_stock` (entero, nullable) que define la **cuota diaria** de ese ítem
+- Si `daily_stock` es `null` o `0`, el ítem está **bloqueado** — no se puede ordenar
+- El admin configura el `daily_stock` de cada ítem desde el panel de menú
+- El stock **se resetea automáticamente cada día a las 00:00** via `ResetDailyStockJob` (Solid Queue)
+- Al resetear, se crea un nuevo registro `DailyStock` por ítem tomando el valor de `MenuItem#daily_stock` como `total`, con `used = 0`
 
 ### 1.2 Descuento de Stock
-- La unidad de stock es el **producto principal del local** (configurable según el negocio)
-- Cada ítem de orden descuenta 1 unidad de stock
+- El stock se trackea por `DailyStock` (un registro por `menu_item_id` + `date`)
+- La cantidad pedida de cada ítem descuenta de su propio `DailyStock`
 - El stock se descuenta en el momento en que se **confirma la orden** (status: `confirmed`)
 - Si la orden es cancelada antes de ser confirmada, **no se descuenta stock**
-- Si la orden es cancelada después de `confirmed`, el stock **se devuelve** (+1 al disponible del día)
+- Si la orden es cancelada después de `confirmed`, el stock **se devuelve** por ítem
 
 ### 1.3 Control de Disponibilidad
-- Si el stock disponible es **0**, el sistema bloquea la creación de nuevas órdenes
-- El portal del cliente muestra el mensaje:
-
-  > *"Se ha agotado nuestro producto. ¡Gracias por comunicarte! Nuestro producto es limitado, ¡apurate a pedirlo!"*
-
-- El menú público pasa a estado **"Sin stock"** — los ítems se muestran deshabilitados
-- El admin puede ver en el dashboard cuántas unidades quedan disponibles en el día
-- **El cliente puede pedir hasta 4 unidades por orden**
-- Validación antes de confirmar: `used + cantidad_solicitada <= total`
-- Si el stock disponible es menor a la cantidad pedida, se bloquea la orden con mensaje de stock insuficiente
+- Si el `DailyStock` de un ítem llega a `used == total`, ese ítem queda sin stock
+- El portal del cliente muestra el ítem deshabilitado cuando no hay stock
+- El admin puede ver en el dashboard el stock por ítem del día
+- **El cliente puede pedir hasta 10 unidades del mismo ítem por orden**
+- Validación al crear la orden y al confirmar: `used + cantidad_solicitada <= total` por ítem
+- Si el stock disponible de un ítem es menor a la cantidad pedida, la orden se bloquea con mensaje por ítem
 
 ---
 
@@ -95,7 +91,7 @@ tags:
 ### 4.1 Ajustes configurables por el admin
 | Ajuste | Descripción |
 |---|---|
-| `daily_stock` | Stock diario por defecto del producto principal (default: 100) |
+| `store_name` | Nombre del local |
 | `mp_alias` | Alias CVU de Mercado Pago para recibir transferencias |
 | `store_address` | Dirección del local (para retiros) |
 | `store_name` | Nombre del local (Two Brothers) |
@@ -215,8 +211,9 @@ confirmed → preparing → ready ──[admin: marcar entregada]──► deliv
 
 | Fecha | Decisión | Estado |
 |---|---|---|
-| 2026-03-16 | Stock por defecto: 100 unidades/día, reseteo automático a las 00:00 | ✅ |
-| 2026-03-16 | Máximo 4 unidades por orden | ✅ |
+| 2026-03-23 | Stock por ítem: cada MenuItem tiene su propio daily_stock y DailyStock record por día | ✅ |
+| 2026-03-23 | Máximo 10 unidades del mismo ítem por orden | ✅ |
+| 2026-03-23 | daily_stock null o 0 bloquea el ítem (no se puede ordenar) | ✅ |
 | 2026-03-16 | Horario: 20:00–00:00 del mismo día, Jueves a Domingo | ✅ |
 | 2026-03-16 | Órdenes en curso al cierre siguen flujo normal sin interrupción | ✅ |
 | 2026-03-16 | Solo admin puede cancelar órdenes | ✅ |

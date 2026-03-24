@@ -1,5 +1,6 @@
 FactoryBot.define do
   factory :daily_stock do
+    association :menu_item
     date  { Date.current }
     total { 100 }
     used  { 0 }

@@ -28,6 +28,7 @@ export interface MenuItem {
   description: string | null
   price: number
   available: boolean
+  daily_stock: number | null
   image_url: string | null
 }
 
@@ -100,6 +101,9 @@ export interface DeliveryAssignmentWithOrder extends DeliveryAssignment {
 }
 
 export interface DailyStock {
+  id: number
+  menu_item_id: number
+  menu_item_name: string
   date: string
   total: number
   used: number

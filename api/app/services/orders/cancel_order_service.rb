@@ -20,9 +20,10 @@ module Orders
         @order.cancel!
 
         if was_confirmed
-          quantity = @order.order_items.sum(:quantity)
-          stock    = DailyStock.today
-          stock.update!(used: [ stock.used - quantity, 0 ].max)
+          @order.order_items.each do |item|
+            stock = DailyStock.for_item_today(item.menu_item)
+            stock.update!(used: [ stock.used - item.quantity, 0 ].max)
+          end
         end
       end
 

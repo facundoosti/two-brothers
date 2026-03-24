@@ -2,6 +2,8 @@ require "rails_helper"
 
 RSpec.describe Tenant, type: :model do
   describe "validations" do
+    subject { create(:tenant) }
+
     it { should validate_presence_of(:name) }
     it { should validate_presence_of(:subdomain) }
     it { should validate_uniqueness_of(:subdomain) }

@@ -1,41 +1,44 @@
 require "rails_helper"
 
 RSpec.describe DailyStock, type: :model do
+  let(:menu_item) { create(:menu_item) }
+
   describe "validations" do
+    # Provide a persisted subject with all required fields for shoulda-matchers
+    subject { create(:daily_stock, menu_item: menu_item) }
+
     it { should validate_presence_of(:date) }
     it { should validate_presence_of(:total) }
     it { should validate_presence_of(:used) }
     it { should validate_numericality_of(:total).only_integer.is_greater_than_or_equal_to(0) }
     it { should validate_numericality_of(:used).only_integer.is_greater_than_or_equal_to(0) }
-    it { should validate_uniqueness_of(:date) }
+    it { should validate_uniqueness_of(:date).scoped_to(:menu_item_id) }
+    it { should belong_to(:menu_item) }
   end
 
-  describe ".today" do
-    context "when no record exists for today" do
-      it "creates a new record with default total of 100" do
-        expect { DailyStock.today }.to change(DailyStock, :count).by(1)
-        expect(DailyStock.today.total).to eq(100)
+  describe ".for_item_today" do
+    context "when no record exists for the item today" do
+      it "creates a new record" do
+        expect { DailyStock.for_item_today(menu_item) }.to change(DailyStock, :count).by(1)
+      end
+
+      it "seeds total from menu_item.daily_stock" do
+        menu_item.update!(daily_stock: 75)
+        stock = DailyStock.for_item_today(menu_item)
+        expect(stock.total).to eq(75)
       end
 
       it "sets used to 0" do
-        expect(DailyStock.today.used).to eq(0)
-      end
-
-      context "with a custom daily_chicken_stock setting" do
-        before { Setting["daily_chicken_stock"] = "50" }
-
-        it "uses the configured total" do
-          expect(DailyStock.today.total).to eq(50)
-        end
+        expect(DailyStock.for_item_today(menu_item).used).to eq(0)
       end
     end
 
-    context "when a record already exists for today" do
-      let!(:stock) { create(:daily_stock, date: Date.current, total: 80, used: 20) }
+    context "when a record already exists for the item today" do
+      let!(:stock) { create(:daily_stock, menu_item: menu_item, date: Date.current, total: 80, used: 20) }
 
       it "returns the existing record without creating a new one" do
-        expect { DailyStock.today }.not_to change(DailyStock, :count)
-        expect(DailyStock.today.id).to eq(stock.id)
+        expect { DailyStock.for_item_today(menu_item) }.not_to change(DailyStock, :count)
+        expect(DailyStock.for_item_today(menu_item).id).to eq(stock.id)
       end
     end
   end

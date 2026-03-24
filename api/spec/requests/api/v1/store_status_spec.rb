@@ -80,12 +80,18 @@ RSpec.describe "Store Status API", type: :request do
       end
     end
 
-    it "returns stock_available from today's DailyStock" do
-      DailyStock.delete_all
-      create(:daily_stock, date: Date.current, total: 100, used: 30)
+    it "returns stock_available true when items with daily_stock exist" do
+      create(:menu_item, available: true, daily_stock: 50)
       get "/api/v1/store_status"
       json = JSON.parse(response.body)
-      expect(json["stock_available"]).to eq(70)
+      expect(json["stock_available"]).to be true
+    end
+
+    it "returns stock_available false when no items have daily_stock configured" do
+      MenuItem.delete_all
+      get "/api/v1/store_status"
+      json = JSON.parse(response.body)
+      expect(json["stock_available"]).to be false
     end
   end
 end

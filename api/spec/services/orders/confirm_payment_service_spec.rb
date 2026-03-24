@@ -1,8 +1,8 @@
 require "rails_helper"
 
 RSpec.describe Orders::ConfirmPaymentService, type: :service do
-  let!(:stock) { create(:daily_stock, date: Date.current, total: 100, used: 0) }
-  let(:order)  { create(:order, :with_item) }
+  let(:menu_item) { create(:menu_item, daily_stock: 50) }
+  let(:order)     { create(:order, :with_item) }
 
   subject(:result) { described_class.call(order: order) }
 
@@ -16,8 +16,14 @@ RSpec.describe Orders::ConfirmPaymentService, type: :service do
       expect(order.reload).to be_confirmed
     end
 
-    it "deducts stock" do
-      expect { result }.to change { stock.reload.used }.by(1)
+    it "deducts stock for each item" do
+      item    = order.order_items.first
+      stock   = DailyStock.for_item_today(item.menu_item)
+      initial = stock.used
+
+      result
+
+      expect(stock.reload.used).to eq(initial + item.quantity)
     end
 
     it "returns the confirmed order in payload" do
@@ -32,18 +38,19 @@ RSpec.describe Orders::ConfirmPaymentService, type: :service do
       expect(result).to be_failure
       expect(result.error).to eq(I18n.t("errors.order_not_pending_payment"))
     end
-
-    it "does not change stock" do
-      expect { result }.not_to change { stock.reload.used }
-    end
   end
 
-  describe "insufficient stock" do
-    before { stock.update!(used: 100) }
+  describe "insufficient stock for an item" do
+    let(:order_item) { order.order_items.first }
+
+    before do
+      stock = DailyStock.for_item_today(order_item.menu_item)
+      stock.update!(used: stock.total) # exhaust all stock
+    end
 
     it "returns failure" do
       expect(result).to be_failure
-      expect(result.error).to eq(I18n.t("errors.insufficient_stock_confirm"))
+      expect(result.error).to eq(I18n.t("errors.insufficient_stock_confirm_item", name: order_item.menu_item.name))
     end
 
     it "does not transition the order" do

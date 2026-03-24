@@ -1,4 +1,4 @@
-import { Package, Clock, CheckCircle2, Drumstick, ArrowRight } from 'lucide-react'
+import { Package, Clock, CheckCircle2, BarChart2, ArrowRight } from 'lucide-react'
 import { Link } from 'react-router'
 import AdminTopbar from './components/AdminTopbar'
 import { ORDER_STATUS_LABEL, ORDER_STATUS_CLASSES } from '@/lib/status'
@@ -63,9 +63,11 @@ export default function DashboardPage() {
       color: 'text-(--color-primary)',
     },
     {
-      label: 'Pollos disponibles',
-      value: stock ? `${stock.available}/${stock.total}` : '—',
-      icon: Drumstick,
+      label: 'Stock disponible',
+      value: stock
+        ? `${stock.reduce((s, i) => s + i.available, 0)}/${stock.reduce((s, i) => s + i.total, 0)}`
+        : '—',
+      icon: BarChart2,
       color: 'text-(--color-primary)',
       large: true,
     },

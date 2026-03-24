@@ -19,7 +19,7 @@ export function useDashboard() {
 
 export function useDailyStock() {
   return useQuery({
-    queryKey: ['daily_stock'],
-    queryFn: () => api.get<DailyStock>('/api/v1/daily_stock'),
+    queryKey: ['daily_stocks'],
+    queryFn: () => api.get<DailyStock[]>('/api/v1/daily_stocks'),
   })
 }

@@ -1,0 +1,99 @@
+<style>
+  .badge-pending  { background: #2e2100; color: #f5a623; }
+  .badge-paid     { background: #0f2e1d; color: #40c97f; }
+  .badge-overdue  { background: #2a1e1e; color: #e05252; }
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+  .detail-row {
+    display: contents;
+  }
+  .detail-label {
+    padding: 12px 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #7a8099;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    border-bottom: 1px solid #1e2130;
+  }
+  .detail-value {
+    padding: 12px 20px;
+    font-size: 14px;
+    color: #e8eaf0;
+    border-bottom: 1px solid #1e2130;
+    font-family: monospace;
+  }
+</style>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title"><%= @billing_period.subscription.tenant.name %> — <%= @billing_period.month %>/<%= @billing_period.year %></h1>
+    <p class="page-subtitle">Período de facturación · Mes <%= @billing_period.billing_month_number %> del ciclo</p>
+  </div>
+  <div class="actions">
+    <%= link_to "← Facturación", superadmin_billing_periods_path, class: "btn btn-ghost" %>
+    <% unless @billing_period.paid? %>
+      <%= button_to "Marcar como pagado",
+            mark_paid_superadmin_billing_period_path(@billing_period),
+            method: :patch,
+            class: "btn btn-primary" %>
+    <% end %>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom: 20px;">
+  <div class="detail-grid">
+    <div class="detail-label">Empresa</div>
+    <div class="detail-value" style="font-family: inherit; font-weight: 600;"><%= @billing_period.subscription.tenant.name %></div>
+
+    <div class="detail-label">Período</div>
+    <div class="detail-value" style="font-family: inherit;"><%= Date::MONTHNAMES[@billing_period.month] %> <%= @billing_period.year %></div>
+
+    <div class="detail-label">Mes del ciclo</div>
+    <div class="detail-value" style="font-family: inherit;">Mes <%= @billing_period.billing_month_number %></div>
+
+    <div class="detail-label">Plan</div>
+    <div class="detail-value" style="font-family: inherit;">
+      <span class="badge <%= plan_badge_class(@billing_period.plan) %>"><%= plan_label(@billing_period.plan) %></span>
+    </div>
+
+    <div class="detail-label">Estado</div>
+    <div class="detail-value" style="font-family: inherit;">
+      <span class="badge badge-<%= @billing_period.status %>"><%= status_label(@billing_period.status) %></span>
+    </div>
+
+    <div class="detail-label">Vencimiento</div>
+    <div class="detail-value" style="font-family: inherit;"><%= @billing_period.due_date&.strftime("%d/%m/%Y") %></div>
+  </div>
+</div>
+
+<div class="card" style="margin-bottom: 20px;">
+  <div style="padding: 16px 20px; border-bottom: 1px solid #252a35;">
+    <h2 style="font-size: 13px; font-weight: 600; color: #7a8099; text-transform: uppercase; letter-spacing: 0.4px;">Desglose del cálculo</h2>
+  </div>
+  <div class="detail-grid">
+    <div class="detail-label">USD base</div>
+    <div class="detail-value">USD <%= @billing_period.usd_base %></div>
+
+    <div class="detail-label">Cotización blue usada</div>
+    <div class="detail-value">$<%= number_with_delimiter(@billing_period.blue_rate.to_f, delimiter: '.', separator: ',') %></div>
+
+    <div class="detail-label">Base ARS (USD base × cotización)</div>
+    <div class="detail-value">$<%= number_with_delimiter(@billing_period.base_ars.to_f.round(2), delimiter: '.', separator: ',') %></div>
+
+    <div class="detail-label">Ventas delivered del mes</div>
+    <div class="detail-value">$<%= number_with_delimiter(@billing_period.delivered_sales_ars.to_f.round(2), delimiter: '.', separator: ',') %></div>
+
+    <div class="detail-label">Porcentaje variable</div>
+    <div class="detail-value"><%= (@billing_period.variable_pct.to_f * 100).round(2) %>%</div>
+
+    <div class="detail-label">Variable ARS (ventas × %)</div>
+    <div class="detail-value">$<%= number_with_delimiter(@billing_period.variable_ars.to_f.round(2), delimiter: '.', separator: ',') %></div>
+
+    <div class="detail-label" style="border-bottom: none; font-size: 13px; color: #e8eaf0;">Total ARS</div>
+    <div class="detail-value" style="border-bottom: none; font-size: 16px; font-weight: 600; color: #40c97f;">$<%= number_with_delimiter(@billing_period.total_ars.to_f.round(2), delimiter: '.', separator: ',') %></div>
+  </div>
+</div>

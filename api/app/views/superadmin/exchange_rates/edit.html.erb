@@ -1,0 +1,30 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Editar cotización</h1>
+    <p class="page-subtitle"><%= Date::MONTHNAMES[@exchange_rate.month] %> <%= @exchange_rate.year %></p>
+  </div>
+  <%= link_to "← Volver", superadmin_exchange_rates_path, class: "btn btn-ghost" %>
+</div>
+
+<div class="form-card">
+  <%= form_with model: @exchange_rate, url: superadmin_exchange_rate_path(@exchange_rate), method: :patch, local: true do |f| %>
+    <% if @exchange_rate.errors.any? %>
+      <ul class="error-list">
+        <% @exchange_rate.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    <% end %>
+
+    <div class="form-group">
+      <%= f.label :blue_rate, "Cotización blue (ARS)" %>
+      <%= f.number_field :blue_rate, step: "0.01", style: "width: 100%; background: #1e2130; border: 1px solid #252a35; border-radius: 8px; padding: 10px 14px; font-size: 14px; color: #e8eaf0; outline: none;" %>
+      <p class="hint">Modificar esta cotización NO recalcula períodos ya generados para este mes.</p>
+    </div>
+
+    <div class="form-actions">
+      <%= f.submit "Guardar cambios", class: "btn btn-primary" %>
+      <%= link_to "Cancelar", superadmin_exchange_rates_path, class: "btn btn-ghost" %>
+    </div>
+  <% end %>
+</div>

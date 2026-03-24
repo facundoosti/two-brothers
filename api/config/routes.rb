@@ -17,6 +17,24 @@ Rails.application.routes.draw do
     get  "tenants/new",          to: "tenants#new",  as: :new_tenant
     get  "tenants/:id/edit",     to: "tenants#edit", as: :edit_tenant
     resources :tenants, only: %i[index create update destroy]
+
+    resources :subscriptions, only: %i[index create] do
+      member do
+        patch :suspend
+        patch :reactivate
+      end
+    end
+
+    resources :exchange_rates, only: %i[index create edit update]
+
+    resources :billing_periods, only: %i[index show] do
+      member do
+        patch :mark_paid
+      end
+      collection do
+        post :generate
+      end
+    end
   end
 
   mount ActionCable.server => "/cable"
@@ -81,7 +99,10 @@ Rails.application.routes.draw do
       resource :settings, only: %i[show update], controller: "settings"
       resource :dashboard, only: :show, controller: "dashboard"
       resource :reports,   only: :show, controller: "reports"
-      resource :daily_stock, only: %i[show update], controller: "daily_stocks"
+      resources :daily_stocks, only: %i[index update], controller: "daily_stocks"
+
+      # Billing (solo lectura para el admin del tenant)
+      resource :billing, only: :show, controller: "billing"
     end
   end
 end

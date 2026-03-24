@@ -1,0 +1,75 @@
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Cotizaciones Blue</h1>
+    <p class="page-subtitle">Valor del dólar blue por mes (cotización usada para facturación)</p>
+  </div>
+</div>
+
+<% unless @current_rate %>
+  <div class="flash-alert">
+    No hay cotización blue registrada para <%= I18n.l(Date.today, format: "%B %Y") %>. Los billing periods no se pueden generar hasta que la ingreses.
+  </div>
+<% end %>
+
+<div class="card" style="padding: 24px; margin-bottom: 24px;">
+  <h2 style="font-size: 15px; font-weight: 600; color: #e8eaf0; margin-bottom: 16px;">
+    Registrar cotización
+  </h2>
+  <%= form_with model: @new_rate, url: superadmin_exchange_rates_path, local: true do |f| %>
+    <% if @new_rate.errors.any? %>
+      <ul class="error-list">
+        <% @new_rate.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    <% end %>
+    <div style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
+      <div class="form-group" style="margin: 0;">
+        <%= f.label :year, "Año" %>
+        <%= f.number_field :year, class: "form-input", style: "width: 90px; background: #1e2130; border: 1px solid #252a35; border-radius: 8px; padding: 10px 14px; font-size: 14px; color: #e8eaf0; outline: none;" %>
+      </div>
+      <div class="form-group" style="margin: 0;">
+        <%= f.label :month, "Mes (1–12)" %>
+        <%= f.number_field :month, min: 1, max: 12, class: "form-input", style: "width: 80px; background: #1e2130; border: 1px solid #252a35; border-radius: 8px; padding: 10px 14px; font-size: 14px; color: #e8eaf0; outline: none;" %>
+      </div>
+      <div class="form-group" style="margin: 0;">
+        <%= f.label :blue_rate, "Cotización blue (ARS)" %>
+        <%= f.number_field :blue_rate, step: "0.01", class: "form-input", style: "width: 140px; background: #1e2130; border: 1px solid #252a35; border-radius: 8px; padding: 10px 14px; font-size: 14px; color: #e8eaf0; outline: none;" %>
+      </div>
+      <%= f.submit "Guardar", class: "btn btn-primary", style: "margin-top: 18px;" %>
+    </div>
+  <% end %>
+</div>
+
+<div class="card">
+  <% if @exchange_rates.empty? %>
+    <div class="empty-state">
+      <p>No hay cotizaciones registradas.</p>
+    </div>
+  <% else %>
+    <table>
+      <thead>
+        <tr>
+          <th>Año</th>
+          <th>Mes</th>
+          <th>Cotización blue</th>
+          <th>Registrado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @exchange_rates.each do |rate| %>
+          <tr>
+            <td><%= rate.year %></td>
+            <td><%= Date::MONTHNAMES[rate.month] %></td>
+            <td style="font-family: monospace; font-size: 13px;">$<%= number_with_delimiter(rate.blue_rate.to_f, delimiter: '.', separator: ',') %></td>
+            <td style="color: #7a8099; font-size: 13px;"><%= rate.created_at.strftime("%d/%m/%Y %H:%M") %></td>
+            <td>
+              <%= link_to "Editar", edit_superadmin_exchange_rate_path(rate), class: "btn btn-ghost" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</div>

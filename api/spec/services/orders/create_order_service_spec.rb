@@ -1,13 +1,13 @@
 require "rails_helper"
 
 RSpec.describe Orders::CreateOrderService, type: :service do
-  # Thursday 20:30 Buenos Aires (23:30 UTC) — within business hours, same UTC date as the stock fixture
-  let(:open_time) { Time.find_zone("America/Argentina/Buenos_Aires").local(2026, 3, 19, 20, 30, 0) }
+  # Thursday 20:30 Buenos Aires (23:30 UTC) — within business hours
+  let(:open_time)  { Time.find_zone("America/Argentina/Buenos_Aires").local(2026, 3, 19, 20, 30, 0) }
+  let(:closed_time) { Time.find_zone("America/Argentina/Buenos_Aires").local(2026, 3, 19, 10, 0, 0) }
 
-  let(:customer)   { create(:user) }
-  let(:category)   { create(:category) }
-  let(:menu_item)  { create(:menu_item, category: category) }
-  let!(:stock)     { create(:daily_stock, date: Date.new(2026, 3, 19), total: 100, used: 0) }
+  let(:customer)  { create(:user) }
+  let(:category)  { create(:category) }
+  let(:menu_item) { create(:menu_item, category: category, daily_stock: 50) }
 
   let(:valid_params) do
     {
@@ -20,9 +20,7 @@ RSpec.describe Orders::CreateOrderService, type: :service do
   end
 
   subject(:result) do
-    travel_to(open_time) do
-      described_class.call(user: customer, params: valid_params)
-    end
+    travel_to(open_time) { described_class.call(user: customer, params: valid_params) }
   end
 
   describe "successful order creation" do
@@ -44,64 +42,81 @@ RSpec.describe Orders::CreateOrderService, type: :service do
   end
 
   describe "store closed" do
-    let(:closed_time) { Time.find_zone("America/Argentina/Buenos_Aires").local(2026, 3, 19, 10, 0, 0) }
-
     it "returns failure" do
-      result = travel_to(closed_time) do
-        described_class.call(user: customer, params: valid_params)
-      end
+      result = travel_to(closed_time) { described_class.call(user: customer, params: valid_params) }
       expect(result).to be_failure
       expect(result.error).to eq(I18n.t("errors.store_closed"))
     end
 
     it "does not create an order" do
       expect {
-        travel_to(closed_time) do
-          described_class.call(user: customer, params: valid_params)
-        end
+        travel_to(closed_time) { described_class.call(user: customer, params: valid_params) }
       }.not_to change(Order, :count)
     end
   end
 
-  describe "max chickens exceeded" do
-    let(:greedy_params) do
+  describe "item without daily stock configured" do
+    let(:menu_item) { create(:menu_item, :no_stock, category: category) }
+
+    it "returns failure" do
+      result = travel_to(open_time) { described_class.call(user: customer, params: valid_params) }
+      expect(result).to be_failure
+      expect(result.error).to include(I18n.t("errors.item_no_stock", name: menu_item.name))
+    end
+  end
+
+  describe "item with daily_stock: 0" do
+    let(:menu_item) { create(:menu_item, :zero_stock, category: category) }
+
+    it "returns failure" do
+      result = travel_to(open_time) { described_class.call(user: customer, params: valid_params) }
+      expect(result).to be_failure
+    end
+  end
+
+  describe "max quantity per item exceeded" do
+    let(:over_limit_params) do
       valid_params.merge(
         order_items_attributes: [
-          { menu_item_id: menu_item.id, quantity: 5, unit_price: 1500.00 }
+          { menu_item_id: menu_item.id, quantity: 11, unit_price: 1500.00 }
         ]
       )
     end
 
     it "returns failure" do
-      result = travel_to(open_time) do
-        described_class.call(user: customer, params: greedy_params)
-      end
+      result = travel_to(open_time) { described_class.call(user: customer, params: over_limit_params) }
       expect(result).to be_failure
-      expect(result.error).to eq(I18n.t("errors.max_chickens_per_order"))
+      expect(result.error).to eq(I18n.t("errors.max_quantity_per_item", max: 10))
+    end
+
+    it "does not create an order" do
+      expect {
+        travel_to(open_time) { described_class.call(user: customer, params: over_limit_params) }
+      }.not_to change(Order, :count)
     end
   end
 
-  describe "insufficient stock" do
-    before { stock.update!(used: 99) }
+  describe "insufficient stock for item" do
+    # Create and exhaust the stock record within travel_to so the date matches
+    before do
+      travel_to(open_time) do
+        stock = DailyStock.for_item_today(menu_item)
+        stock.update!(used: 49) # only 1 available, but requesting 2
+      end
+    end
 
     it "returns failure" do
-      result = travel_to(open_time) do
-        described_class.call(user: customer, params: valid_params)
-      end
+      result = travel_to(open_time) { described_class.call(user: customer, params: valid_params) }
       expect(result).to be_failure
-      expect(result.error).to include(I18n.t("errors.insufficient_stock", available: 1))
+      expect(result.error).to include(I18n.t("errors.insufficient_stock_item", name: menu_item.name, available: 1))
     end
   end
 
   describe "delivery order without address" do
-    let(:params_without_address) do
-      valid_params.merge(modality: "delivery")
-    end
+    let(:params_without_address) { valid_params.merge(modality: "delivery") }
 
     it "returns failure due to validation" do
-      result = travel_to(open_time) do
-        described_class.call(user: customer, params: params_without_address)
-      end
+      result = travel_to(open_time) { described_class.call(user: customer, params: params_without_address) }
       expect(result).to be_failure
     end
   end

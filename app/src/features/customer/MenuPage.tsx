@@ -36,7 +36,7 @@ export default function MenuPage() {
   const totalPrice = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
 
   const storeOpen = status?.open ?? false
-  const stockAvailable = status?.stock_available ?? 0
+  const stockAvailable = status?.stock_available ?? false
 
   function getQty(id: number) {
     return items.find((i) => i.id === id)?.quantity ?? 0
@@ -69,10 +69,10 @@ export default function MenuPage() {
   return (
     <div className="pb-28 max-w-lg mx-auto">
       {/* Stock / schedule banner */}
-      {storeOpen && stockAvailable > 0 ? (
+      {storeOpen && stockAvailable ? (
         <div className="border-b border-(--color-primary)/20 px-4 py-2.5 flex items-center justify-between">
           <span className="text-sm text-(--color-primary) font-medium">
-            {stockAvailable} pollos disponibles hoy
+            Pedidos disponibles hoy
           </span>
           <span className="text-xs text-(--color-primary)/60">
             Abierto · hasta las {status!.closing_time}

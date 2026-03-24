@@ -18,3 +18,13 @@ production:
   clear_solid_queue_finished_jobs:
     command: "SolidQueue::Job.clear_finished_in_batches(sleep_between_batches: 0.3)"
     schedule: every hour at minute 12
+
+  generate_billing_periods:
+    class: GenerateBillingPeriodsJob
+    queue: billing
+    schedule: "0 2 1 * *"
+
+  mark_overdue_billing_periods:
+    class: MarkOverdueBillingPeriodsJob
+    queue: billing
+    schedule: every day at 9am

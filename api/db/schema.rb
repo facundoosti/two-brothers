@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_23_020116) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_23_213554) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -42,6 +42,29 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_23_020116) do
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
   end
 
+  create_table "billing_periods", force: :cascade do |t|
+    t.bigint "subscription_id", null: false
+    t.integer "year", null: false
+    t.integer "month", null: false
+    t.integer "billing_month_number", null: false
+    t.string "plan", null: false
+    t.decimal "usd_base", precision: 10, scale: 2, null: false
+    t.decimal "blue_rate", precision: 10, scale: 2, null: false
+    t.decimal "base_ars", precision: 14, scale: 2, null: false
+    t.decimal "variable_pct", precision: 5, scale: 4, null: false
+    t.decimal "delivered_sales_ars", precision: 14, scale: 2, null: false
+    t.decimal "variable_ars", precision: 14, scale: 2, null: false
+    t.decimal "total_ars", precision: 14, scale: 2, null: false
+    t.string "status", default: "pending", null: false
+    t.date "due_date"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["due_date"], name: "index_billing_periods_on_due_date"
+    t.index ["status"], name: "index_billing_periods_on_status"
+    t.index ["subscription_id", "year", "month"], name: "index_billing_periods_on_subscription_id_and_year_and_month", unique: true
+    t.index ["subscription_id"], name: "index_billing_periods_on_subscription_id"
+  end
+
   create_table "categories", force: :cascade do |t|
     t.string "name"
     t.integer "position"
@@ -55,7 +78,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_23_020116) do
     t.integer "used"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["date"], name: "index_daily_stocks_on_date", unique: true
+    t.bigint "menu_item_id", null: false
+    t.index ["menu_item_id", "date"], name: "index_daily_stocks_on_menu_item_id_and_date", unique: true
+    t.index ["menu_item_id"], name: "index_daily_stocks_on_menu_item_id"
   end
 
   create_table "delivery_assignments", force: :cascade do |t|
@@ -81,6 +106,15 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_23_020116) do
     t.index ["delivery_assignment_id"], name: "index_delivery_locations_on_delivery_assignment_id"
   end
 
+  create_table "exchange_rates", force: :cascade do |t|
+    t.integer "year", null: false
+    t.integer "month", null: false
+    t.decimal "blue_rate", precision: 10, scale: 2, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["year", "month"], name: "index_exchange_rates_on_year_and_month", unique: true
+  end
+
   create_table "menu_items", force: :cascade do |t|
     t.bigint "category_id", null: false
     t.string "name"
@@ -89,6 +123,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_23_020116) do
     t.boolean "available", default: true, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "daily_stock"
     t.index ["category_id"], name: "index_menu_items_on_category_id"
   end
 
@@ -140,6 +175,16 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_23_020116) do
     t.index ["key"], name: "index_settings_on_key", unique: true
   end
 
+  create_table "subscriptions", force: :cascade do |t|
+    t.bigint "tenant_id", null: false
+    t.date "started_at", null: false
+    t.string "status", default: "active", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["tenant_id", "status"], name: "index_subscriptions_on_tenant_id_and_status"
+    t.index ["tenant_id"], name: "index_subscriptions_on_tenant_id"
+  end
+
   create_table "tenants", force: :cascade do |t|
     t.string "name", null: false
     t.string "subdomain", null: false
@@ -167,6 +212,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_23_020116) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "billing_periods", "subscriptions"
+  add_foreign_key "daily_stocks", "menu_items"
   add_foreign_key "delivery_assignments", "orders"
   add_foreign_key "delivery_assignments", "users"
   add_foreign_key "delivery_locations", "delivery_assignments"
@@ -176,4 +223,5 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_23_020116) do
   add_foreign_key "orders", "users"
   add_foreign_key "orders", "users", column: "cancelled_by_id"
   add_foreign_key "orders", "users", column: "created_by_id"
+  add_foreign_key "subscriptions", "tenants"
 end

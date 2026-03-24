@@ -5,7 +5,10 @@ module Api
       def show
         authorize :dashboard, :show?
         today_orders = Order.where("DATE(created_at) = ?", Date.current)
-        stock = DailyStock.today
+        stocks = MenuItem.where(available: true).where("daily_stock > 0").map do |item|
+          daily = DailyStock.for_item_today(item)
+          { menu_item_id: item.id, name: item.name, total: daily.total, used: daily.used, available: daily.available }
+        end
 
         render json: {
           orders: {
@@ -18,11 +21,7 @@ module Api
             delivered: today_orders.delivered.count,
             cancelled: today_orders.cancelled.count
           },
-          stock: {
-            total: stock.total,
-            used: stock.used,
-            available: stock.available
-          },
+          stock: stocks,
           active_orders: Order.includes(:user)
             .where(status: %w[confirmed preparing ready delivering])
             .order(created_at: :asc)

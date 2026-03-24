@@ -65,7 +65,7 @@ RSpec.describe "Superadmin Tenants", type: :request do
       post "/superadmin/tenants",
            params: { tenant: { name: "", subdomain: "" } },
            headers: auth_headers
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
     end
   end
 
@@ -103,7 +103,7 @@ RSpec.describe "Superadmin Tenants", type: :request do
       patch "/superadmin/tenants/#{tenant.id}",
             params: { tenant: { name: "", subdomain: "" } },
             headers: auth_headers
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
     end
   end
 

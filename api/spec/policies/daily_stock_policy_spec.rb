@@ -7,7 +7,7 @@ RSpec.describe DailyStockPolicy, type: :policy do
   let(:customer) { create(:user, role: :customer) }
   let(:delivery) { create(:user, role: :delivery) }
 
-  permissions :show?, :update? do
+  permissions :index?, :update? do
     it { expect(subject).to permit(admin, :daily_stock) }
     it { expect(subject).not_to permit(customer, :daily_stock) }
     it { expect(subject).not_to permit(delivery, :daily_stock) }

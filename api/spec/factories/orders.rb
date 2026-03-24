@@ -42,6 +42,8 @@ FactoryBot.define do
       after(:create) do |order|
         menu_item = create(:menu_item)
         create(:order_item, order: order, menu_item: menu_item)
+        # Ensure today's DailyStock exists for the item so confirm/cancel services work
+        DailyStock.for_item_today(menu_item)
       end
     end
   end

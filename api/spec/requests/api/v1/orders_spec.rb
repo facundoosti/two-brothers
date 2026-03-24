@@ -190,8 +190,6 @@ RSpec.describe "Orders API", type: :request do
   # ─── POST /api/v1/orders/counter ─────────────────────────────────────────
 
   describe "POST /api/v1/orders/counter" do
-    let!(:stock) { create(:daily_stock, date: Date.current, total: 100, used: 0) }
-
     let(:valid_params) do
       {
         order: {
@@ -222,19 +220,21 @@ RSpec.describe "Orders API", type: :request do
       expect(json["modality"]).to eq("pickup")
     end
 
-    it "deducts stock" do
+    it "deducts stock for the item" do
+      stock = DailyStock.for_item_today(menu_item)
       post "/api/v1/orders/counter", params: valid_params, headers: auth_headers(admin)
       expect(stock.reload.used).to eq(2)
     end
 
-    it "returns error when quantity exceeds 4 chickens" do
-      over_limit = { order: { payment_method: "cash", order_items_attributes: [{ menu_item_id: menu_item.id, quantity: 5, unit_price: 1500.00 }] } }
+    it "returns error when quantity exceeds 10 per item" do
+      over_limit = { order: { payment_method: "cash", order_items_attributes: [{ menu_item_id: menu_item.id, quantity: 11, unit_price: 1500.00 }] } }
       post "/api/v1/orders/counter", params: over_limit, headers: auth_headers(admin)
       expect(response).to have_http_status(:unprocessable_content)
     end
 
     it "returns error when stock is insufficient" do
-      stock.update!(used: 100)
+      stock = DailyStock.for_item_today(menu_item)
+      stock.update!(used: stock.total)
       post "/api/v1/orders/counter", params: valid_params, headers: auth_headers(admin)
       expect(response).to have_http_status(:unprocessable_content)
     end

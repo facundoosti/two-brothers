@@ -7,7 +7,7 @@ module Api
       def show
         render json: {
           open:                 StoreSchedule.open?,
-          stock_available:      DailyStock.today.available,
+          stock_available:      MenuItem.where(available: true).where("daily_stock > 0").any?,
           opening_time:         Setting["opening_time"] || "20:00",
           closing_time:         Setting["closing_time"] || "00:00",
           open_days:            (Setting["open_days"] || "4,5,6,0").split(",").map(&:to_i),

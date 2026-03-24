@@ -1,4 +1,4 @@
 class DailyStockPolicy < ApplicationPolicy
-  def show?   = admin?
+  def index?  = admin?
   def update? = admin?
 end

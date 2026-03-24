@@ -43,6 +43,9 @@ es:
             price:
               blank: "no puede estar en blanco"
               greater_than_or_equal_to: "debe ser mayor o igual que %{count}"
+            daily_stock:
+              not_an_integer: "debe ser un número entero"
+              greater_than_or_equal_to: "debe ser mayor o igual que %{count}"
         category:
           attributes:
             name:
@@ -51,11 +54,28 @@ es:
               blank: "no puede estar en blanco"
               not_an_integer: "debe ser un número entero"
               greater_than_or_equal_to: "debe ser mayor o igual que %{count}"
+        subscription:
+          attributes:
+            started_at:
+              blank: "no puede estar en blanco"
+              future_date: "no puede ser una fecha futura"
+            tenant:
+              already_has_active_subscription: "ya tiene una suscripción activa o suspendida"
+        exchange_rate:
+          attributes:
+            year:
+              blank: "no puede estar en blanco"
+            month:
+              blank: "no puede estar en blanco"
+              inclusion: "debe estar entre 1 y 12"
+            blue_rate:
+              blank: "no puede estar en blanco"
+              greater_than: "debe ser mayor que 0"
         daily_stock:
           attributes:
             date:
               blank: "no puede estar en blanco"
-              taken: "ya existe un registro para esta fecha"
+              taken: "ya existe un registro de stock para este ítem en esta fecha"
             total:
               blank: "no puede estar en blanco"
               not_an_integer: "debe ser un número entero"
@@ -77,11 +97,15 @@ es:
     transition_not_allowed: "Transición no permitida."
     invalid_status_value: "Estado no válido."
     store_closed: "El local está cerrado."
-    max_chickens_per_order: "Podés pedir hasta 4 pollos por orden."
-    insufficient_stock: "Stock insuficiente. Quedan %{available} pollos disponibles."
+    item_no_stock: "El ítem '%{name}' no tiene stock disponible para hoy."
+    max_quantity_per_item: "Podés pedir hasta %{max} unidades del mismo ítem."
+    insufficient_stock_item: "Stock insuficiente para '%{name}'. Quedan %{available} disponibles."
+    insufficient_stock_confirm_item: "No hay stock suficiente para confirmar el ítem '%{name}'."
     order_not_pending_payment: "La orden no está en estado pendiente de pago."
-    insufficient_stock_confirm: "Stock insuficiente para confirmar la orden."
     order_cannot_be_cancelled: "La orden no se puede cancelar en su estado actual."
     category_has_orders: "No se puede eliminar la categoría porque tiene ítems con órdenes asociadas."
     menu_item_has_orders: "No se puede eliminar el ítem porque tiene órdenes asociadas."
     tenant_not_found: "Empresa no encontrada."
+    billing:
+      no_exchange_rate: "Sin cotización blue registrada para %{year}/%{month}. Registrala en el panel superadmin antes de generar períodos."
+      no_subscription: "Esta empresa no tiene una suscripción activa."

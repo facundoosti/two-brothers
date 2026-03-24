@@ -1,0 +1,95 @@
+<style>
+  select, input[type="date"] {
+    background: #1e2130; border: 1px solid #252a35; border-radius: 8px;
+    padding: 10px 14px; font-size: 14px; color: #e8eaf0; outline: none;
+  }
+  .badge-active-sub    { background: #0f2e1d; color: #40c97f; }
+  .badge-suspended-sub { background: #2e2100; color: #f5a623; }
+  .badge-cancelled-sub { background: #2a1e1e; color: #e05252; }
+</style>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Suscripciones</h1>
+    <p class="page-subtitle"><%= @subscriptions.count %> suscripción(es) registrada(s)</p>
+  </div>
+</div>
+
+<div class="card" style="padding: 24px; margin-bottom: 24px;">
+  <h2 style="font-size: 15px; font-weight: 600; color: #e8eaf0; margin-bottom: 16px;">Nueva suscripción</h2>
+  <%= form_with url: superadmin_subscriptions_path, local: true do |f| %>
+    <% if @subscription&.errors&.any? %>
+      <ul class="error-list">
+        <% @subscription.errors.full_messages.each do |msg| %>
+          <li><%= msg %></li>
+        <% end %>
+      </ul>
+    <% end %>
+    <div style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
+      <div class="form-group" style="margin: 0;">
+        <label>Empresa</label>
+        <%= f.select "subscription[tenant_id]",
+              options_from_collection_for_select(Tenant.order(:name), :id, :name),
+              { include_blank: "Seleccionar empresa…" } %>
+      </div>
+      <div class="form-group" style="margin: 0;">
+        <label>Fecha de inicio</label>
+        <%= f.date_field "subscription[started_at]", value: Date.today %>
+      </div>
+      <%= f.submit "Crear suscripción", class: "btn btn-primary" %>
+    </div>
+  <% end %>
+</div>
+
+<div class="card">
+  <% if @subscriptions.empty? %>
+    <div class="empty-state">
+      <p>No hay suscripciones registradas.</p>
+    </div>
+  <% else %>
+    <table>
+      <thead>
+        <tr>
+          <th>Empresa</th>
+          <th>Inicio</th>
+          <th>Mes del ciclo</th>
+          <th>Plan actual</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @subscriptions.each do |sub| %>
+          <tr>
+            <td><strong><%= sub.tenant.name %></strong></td>
+            <td style="color: #7a8099; font-size: 13px;"><%= sub.started_at.strftime("%d/%m/%Y") %></td>
+            <td style="text-align: center;">Mes <%= sub.current_billing_month %></td>
+            <td>
+              <span class="badge <%= plan_badge_class(sub.current_plan.to_s) %>"><%= plan_label(sub.current_plan.to_s) %></span>
+            </td>
+            <td>
+              <span class="badge badge-<%= sub.status %>-sub"><%= subscription_status_label(sub.status) %></span>
+            </td>
+            <td>
+              <div class="actions">
+                <%= link_to "Períodos", superadmin_billing_periods_path(tenant_id: sub.tenant_id), class: "btn btn-ghost" %>
+                <% if sub.active? %>
+                  <%= button_to "Suspender",
+                        suspend_superadmin_subscription_path(sub),
+                        method: :patch,
+                        class: "btn btn-danger",
+                        data: { confirm: "¿Suspender la suscripción de #{sub.tenant.name}?" } %>
+                <% elsif sub.suspended? %>
+                  <%= button_to "Reactivar",
+                        reactivate_superadmin_subscription_path(sub),
+                        method: :patch,
+                        class: "btn btn-primary" %>
+                <% end %>
+              </div>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</div>

@@ -141,6 +141,10 @@
     .badge-active   { background: #0f2e1d; color: #40c97f; }
     .badge-inactive { background: #2a1e1e; color: #e05252; }
 
+    .badge-plan-penetracion { background: #1a1e2e; color: #7a9cf5; }
+    .badge-plan-puente      { background: #2e2100; color: #f5a623; }
+    .badge-plan-adopcion    { background: #1a2e1a; color: #40c97f; }
+
     .subdomain {
       font-family: "JetBrains Mono", "SF Mono", monospace;
       font-size: 13px;
@@ -223,6 +227,26 @@
 
     .empty-state p { font-size: 14px; margin-top: 8px; }
 
+    .nav {
+      background: #101319;
+      border-bottom: 1px solid #252a35;
+      padding: 0 24px;
+      display: flex;
+      gap: 4px;
+    }
+    .nav-link {
+      display: inline-block;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #7a8099;
+      text-decoration: none;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .nav-link:hover { color: #e8eaf0; text-decoration: none; }
+    .nav-link.active { color: #40c97f; border-bottom-color: #40c97f; }
+
     .form-card {
       background: #151820;
       border: 1px solid #252a35;
@@ -245,6 +269,13 @@
     </span>
     <span class="topbar-badge">admin.two-brothers.shop</span>
   </div>
+
+  <nav class="nav">
+    <%= link_to "Empresas",      superadmin_tenants_path,        class: "nav-link #{controller_name == 'tenants'      ? 'active' : ''}" %>
+    <%= link_to "Suscripciones", superadmin_subscriptions_path,  class: "nav-link #{controller_name == 'subscriptions' ? 'active' : ''}" %>
+    <%= link_to "Facturación",   superadmin_billing_periods_path, class: "nav-link #{controller_name == 'billing_periods' ? 'active' : ''}" %>
+    <%= link_to "Cotizaciones",  superadmin_exchange_rates_path,  class: "nav-link #{controller_name == 'exchange_rates'  ? 'active' : ''}" %>
+  </nav>
 
   <div class="container">
     <% if flash[:notice] %>

@@ -7,15 +7,20 @@ module Orders
     def call
       return failure(I18n.t("errors.order_not_pending_payment")) unless @order.may_confirm_payment?
 
-      stock    = DailyStock.today
-      quantity = @order.order_items.sum(:quantity)
-
-      return failure(I18n.t("errors.insufficient_stock_confirm")) unless stock.available?(quantity)
+      # Pre-validate per-item stock before entering the transaction
+      @order.order_items.each do |item|
+        stock = DailyStock.for_item_today(item.menu_item)
+        return failure(I18n.t("errors.insufficient_stock_confirm_item", name: item.menu_item.name)) unless stock.available?(item.quantity)
+      end
 
       ActiveRecord::Base.transaction do
         @order.confirm_payment!
         @order.update_columns(paid: true)
-        stock.update!(used: stock.used + quantity)
+
+        @order.order_items.each do |item|
+          stock = DailyStock.for_item_today(item.menu_item)
+          stock.update!(used: stock.used + item.quantity)
+        end
       end
 
       success(@order)

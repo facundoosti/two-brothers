@@ -9,19 +9,13 @@
 
 puts "Creando settings..."
 {
-  "daily_chicken_stock" => "100",
-  "store_name"          => "Two Brothers",
-  "store_address"       => "Washington 133, Dolores",
-  "open_days"           => "4,5,6,0",
-  "opening_time"        => "20:00",
-  "closing_time"        => "00:00",
-  "mp_alias"            => "twobrothers.mp"
+  "store_name"    => "Two Brothers",
+  "store_address" => "Washington 133, Dolores",
+  "open_days"     => "4,5,6,0",
+  "opening_time"  => "20:00",
+  "closing_time"  => "00:00",
+  "mp_alias"      => "twobrothers.mp"
 }.each { |k, v| Setting[k] = v }
-
-# ── Stock del día ──────────────────────────────────────────────────────────────
-
-puts "Creando stock del día..."
-DailyStock.find_or_create_by!(date: Date.today) { |s| s.total = 100; s.used = 0 }
 
 # ── Usuarios ───────────────────────────────────────────────────────────────────
 
